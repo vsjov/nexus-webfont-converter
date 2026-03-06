@@ -1,0 +1,1 @@
+{"version":3,"file":"build-font-entries.d.ts","sourceRoot":"","sources":["../../src/utils/build-font-entries.ts"],"names":[],"mappings":"AAaA,MAAM,MAAM,SAAS,GAAG;IACtB,cAAc,EAAE,MAAM,CAAC;IACvB,MAAM,EAAE,MAAM,CAAC;IACf,KAAK,EAAE,QAAQ,GAAG,QAAQ,CAAC;CAC5B,CAAA;AAMD;;;;;;;GAOG;AACH,eAAO,MAAM,gBAAgB,GAAI,WAAW,MAAM,EAAE,KAAG,SAAS,EAkB/D,CAAA;AAED,eAAe,gBAAgB,CAAA"}

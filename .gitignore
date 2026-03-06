@@ -1,0 +1,82 @@
+######################
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+sh.exe.stackdump
+.sass-cache/
+
+# Local env files
+.env
+.env.*
+!.env.example
+
+#################
+# Project files #
+#################
+
+# Temporary files
+undefined
+**/temp/
+**/*.old.*
+**/*.temp.*
+**/__visual__/**/new/
+**/__visual__/**/diff/
+*.log
+.nx/
+
+# NodeJS
+node_modules/
+package-lock.json
+npm-debug.log
+yarn-error.log
+
+# Compiled output
+dist
+!dist
+tmp
+/out-tsc
+**/*.tsbuildinfo
+**/*.*.tsbuildinfo
+**/*.egg-info
+
+# Build
+build/in/*
+build/out/*
+!build/in/.gitkeep
+!build/out/.gitkeep
+**/__output__/
+**/playwright-report
+
+# IDEs and editors
+.idea
+.fleet
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Misc
+/connect.lock
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
+vite.config.*.timestamp*
+vitest.config.*.timestamp*
+test-results
+

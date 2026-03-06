@@ -1,0 +1,48 @@
+// Imports
+// -----------------------------------------------------------------------------
+// NodeJS
+import fs from 'node:fs';
+import path from 'node:path';
+// External
+import pc from 'picocolors';
+// Internal
+import { SOURCE_EXTENSIONS, PREVIEW_GLYPHS } from '../../config/constants.js';
+import { inferFontFamilyName } from '../../utils/infer-font-family-name.js';
+import { buildFontEntries } from '../../utils/build-font-entries.js';
+import { findLicenseFile } from '../../utils/find-license-file.js';
+import { templateHtmlSamples } from './template-html-samples.js';
+// Function
+// -----------------------------------------------------------------------------
+/**
+ * Generates a `[font-name].html` preview page for a single font family
+ * directory.
+ *
+ * @param fontDir - Directory containing the source font files (TTF / OTF)
+ * @param outputFontDir - Directory where the `.html` file will be written
+ * @param dirName - Directory basename
+ */
+export const generateHtmlForDir = (fontDir, outputFontDir, dirName, progress = {}) => {
+    const { onProgress, onWarn } = progress;
+    const entries = fs.readdirSync(fontDir);
+    const fontFiles = entries.filter(f => SOURCE_EXTENSIONS.includes(path.extname(f).toLowerCase()));
+    if (fontFiles.length === 0) {
+        onWarn?.(`No TTF or OTF files found in ${pc.blue(fontDir)} - skipping HTML generation`);
+        return;
+    }
+    const familyName = inferFontFamilyName(dirName);
+    const fontEntries = buildFontEntries(fontFiles);
+    const html = templateHtmlSamples({
+        familyName,
+        dirName,
+        entries: fontEntries,
+        glyphs: PREVIEW_GLYPHS,
+        licenseFile: findLicenseFile(outputFontDir),
+    });
+    const outputFileName = `${dirName}.html`;
+    const outputPath = path.join(outputFontDir, outputFileName);
+    fs.mkdirSync(outputFontDir, { recursive: true });
+    fs.writeFileSync(outputPath, html, 'utf-8');
+    onProgress?.(`Generated ${pc.green(outputFileName)} for ${pc.blue(familyName)}`);
+};
+export default generateHtmlForDir;
+//# sourceMappingURL=generate-html-for-dir.js.map

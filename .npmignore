@@ -1,0 +1,17 @@
+# Source
+src/
+
+# Build inputs
+build/
+
+# TypeScript project files
+tsconfig*.json
+*.tsbuildinfo
+
+# Config/tooling
+eslint.config.ts
+vite.config.ts
+
+# Development artefacts
+node_modules/
+.git/
