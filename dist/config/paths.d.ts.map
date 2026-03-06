@@ -1,0 +1,1 @@
+{"version":3,"file":"paths.d.ts","sourceRoot":"","sources":["../../src/config/paths.ts"],"names":[],"mappings":"AAWA,KAAK,uBAAuB,GAAG;IAC7B,OAAO,EAAE,MAAM,CAAC;IAChB,QAAQ,EAAE,MAAM,GAAG,IAAI,CAAC;IACxB,SAAS,EAAE,MAAM,GAAG,IAAI,CAAC;CAC1B,CAAA;AAED;;;;;;;;;;;;;GAaG;AACH,eAAO,MAAM,kBAAkB,GAAI,YAAY,uBAAuB;;;;;CA0BrE,CAAA"}
