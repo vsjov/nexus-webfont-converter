@@ -82,7 +82,26 @@ describe('Expect copyLicenseFiles', () => {
     })
   })
 
-  describe('to skip non-.txt file extensions', () => {
+  describe('to copy .md files from input to output directory', () => {
+    it('when license .md files exist', () => {
+      vi.spyOn(fs, 'readdirSync').mockReturnValue([
+        'dm-sans/LICENSE.md',
+      ] as never)
+
+      vi.spyOn(fs, 'statSync').mockReturnValue({ isFile: () => true } as never)
+      vi.spyOn(fs, 'mkdirSync').mockReturnValue(undefined as never)
+      vi.spyOn(fs, 'copyFileSync').mockReturnValue(undefined)
+
+      copyLicenseFiles('/input', '/output')
+
+      expect(fs.copyFileSync).toHaveBeenCalledWith(
+        '/input/dm-sans/LICENSE.md',
+        '/output/dm-sans/LICENSE.md'
+      )
+    })
+  })
+
+  describe('to skip non-license file extensions', () => {
     it('when directory contains fonts and other files', () => {
       vi.spyOn(fs, 'readdirSync').mockReturnValue([
         'dm-sans/DMSans-Regular.ttf',

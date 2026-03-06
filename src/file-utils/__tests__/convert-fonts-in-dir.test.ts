@@ -1,10 +1,12 @@
+// @vitest-environment node
+
 // Imports
 // -----------------------------------------------------------------------------
 // NodeJS
 import fs from 'node:fs'
 
 // External
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Internal
 import { convertFontsInDir } from '../convert-fonts-in-dir.js'
@@ -14,66 +16,94 @@ import { convertFontsInDir } from '../convert-fonts-in-dir.js'
 // -----------------------------------------------------------------------------
 vi.mock('fancy-log', () => ({ default: vi.fn() }))
 
-vi.mock('../utils/convert-font-to-woff.js', () => ({
-  convertFontToWoff: vi.fn(),
-}))
+const { workerFactory } = vi.hoisted(() => {
+  const workerFactory = (message: { success: boolean, error?: string }) => () => {
+    const handlers: Record<string, (arg: unknown) => void> = {}
 
-vi.mock('../utils/convert-font-to-woff2.js', () => ({
-  convertFontToWoff2: vi.fn(),
-}))
+    setImmediate(() => handlers['message']?.(message))
 
-// Re-import the mocked modules to access the mock functions
-const { convertFontToWoff } = await import('../utils/convert-font-to-woff.js')
-const { convertFontToWoff2 } = await import('../utils/convert-font-to-woff2.js')
+    return {
+      on: (_event: string, handler: (arg: unknown) => void) => {
+        handlers[_event] = handler
+      },
+    }
+  }
+
+  return { workerFactory }
+})
+
+vi.mock('node:worker_threads', async importOriginal => {
+  const actual = await importOriginal<typeof import('node:worker_threads')>()
+
+  return {
+    ...actual,
+    Worker: vi.fn().mockImplementation(workerFactory({ success: true })),
+  }
+})
+
+// Re-import the mocked module to access the mock constructor
+const { Worker } = await import('node:worker_threads')
 
 
 // Tests
 // -----------------------------------------------------------------------------
 describe('Expect convertFontsInDir', () => {
+  beforeEach(() => {
+    vi.mocked(Worker).mockImplementation(workerFactory({ success: true }))
+  })
+
   afterEach(() => {
     vi.restoreAllMocks()
   })
 
   describe('to convert TTF files to both WOFF and WOFF2 by default', () => {
-    it('when given a directory with font files', () => {
+    it('when given a directory with font files', async () => {
       vi.spyOn(fs, 'readdirSync').mockReturnValue([
         'DMSans-Regular.ttf',
         'DMSans-Bold.ttf',
       ] as never)
 
-      convertFontsInDir('/fonts/dm-sans')
+      await convertFontsInDir('/fonts/dm-sans')
 
-      expect(convertFontToWoff).toHaveBeenCalledTimes(2)
-      expect(convertFontToWoff2).toHaveBeenCalledTimes(2)
+      // 2 fonts × 2 formats = 4 worker invocations
+      expect(Worker).toHaveBeenCalledTimes(4)
     })
   })
 
   describe('to convert only the requested formats', () => {
-    it('when formats option is set to woff2 only', () => {
+    it('when formats option is set to woff2 only', async () => {
       vi.spyOn(fs, 'readdirSync').mockReturnValue([
         'DMSans-Regular.ttf',
       ] as never)
 
-      convertFontsInDir('/fonts/dm-sans', { formats: ['woff2'] })
+      await convertFontsInDir('/fonts/dm-sans', { formats: ['woff2'] })
 
-      expect(convertFontToWoff).not.toHaveBeenCalled()
-      expect(convertFontToWoff2).toHaveBeenCalledTimes(1)
+      expect(Worker).toHaveBeenCalledTimes(1)
+
+      expect(Worker).toHaveBeenCalledWith(
+        expect.any(URL),
+        expect.objectContaining({ workerData: expect.objectContaining({ format: 'woff2' }) })
+      )
     })
 
-    it('when formats option is set to woff only', () => {
+    it('when formats option is set to woff only', async () => {
       vi.spyOn(fs, 'readdirSync').mockReturnValue([
         'DMSans-Regular.ttf',
       ] as never)
 
-      convertFontsInDir('/fonts/dm-sans', { formats: ['woff'] })
+      await convertFontsInDir('/fonts/dm-sans', { formats: ['woff'] })
 
-      expect(convertFontToWoff).toHaveBeenCalledTimes(1)
-      expect(convertFontToWoff2).not.toHaveBeenCalled()
+      expect(Worker).toHaveBeenCalledTimes(1)
+
+      expect(Worker).toHaveBeenCalledWith(
+        expect.any(URL),
+        expect.objectContaining({ workerData: expect.objectContaining({ format: 'woff' }) })
+      )
     })
   })
 
   describe('to filter only supported font extensions', () => {
-    it('when directory contains mixed file types', () => {
+    it('when directory contains mixed file types', async () => {
       vi.spyOn(fs, 'readdirSync').mockReturnValue([
         'DMSans-Regular.ttf',
         'DMSans-Bold.otf',
@@ -81,70 +111,77 @@ describe('Expect convertFontsInDir', () => {
         'LICENSE.txt',
       ] as never)
 
-      convertFontsInDir('/fonts/dm-sans', { formats: ['woff2'] })
+      await convertFontsInDir('/fonts/dm-sans', { formats: ['woff2'] })
 
-      expect(convertFontToWoff2).toHaveBeenCalledTimes(2)
+      // 2 font files × 1 format = 2 workers
+      expect(Worker).toHaveBeenCalledTimes(2)
     })
   })
 
   describe('to normalize output filenames', () => {
-    it('when converting a PascalCase font name', () => {
+    it('when converting a PascalCase font name', async () => {
       vi.spyOn(fs, 'readdirSync').mockReturnValue([
         'DMSans-BoldItalic.ttf',
       ] as never)
 
-      convertFontsInDir('/fonts/dm-sans', { formats: ['woff2'] })
+      await convertFontsInDir('/fonts/dm-sans', { formats: ['woff2'] })
 
-      expect(convertFontToWoff2).toHaveBeenCalledWith(
-        '/fonts/dm-sans/DMSans-BoldItalic.ttf',
-        expect.stringContaining('dm-sans-bold-italic.woff2')
+      expect(Worker).toHaveBeenCalledWith(
+        expect.any(URL),
+        expect.objectContaining({
+          workerData: expect.objectContaining({
+            outputPath: expect.stringContaining('dm-sans-bold-italic.woff2'),
+          }),
+        })
       )
     })
   })
 
   describe('to place output in custom outputDir', () => {
-    it('when outputDir option is provided', () => {
+    it('when outputDir option is provided', async () => {
       vi.spyOn(fs, 'readdirSync').mockReturnValue([
         'DMSans-Regular.ttf',
       ] as never)
 
-      convertFontsInDir('/fonts/dm-sans', {
+      await convertFontsInDir('/fonts/dm-sans', {
         outputDir: '/output/dm-sans',
         formats: ['woff2'],
       })
 
-      expect(convertFontToWoff2).toHaveBeenCalledWith(
-        '/fonts/dm-sans/DMSans-Regular.ttf',
-        '/output/dm-sans/dm-sans-regular.woff2'
+      expect(Worker).toHaveBeenCalledWith(
+        expect.any(URL),
+        expect.objectContaining({
+          workerData: expect.objectContaining({
+            inputPath: '/fonts/dm-sans/DMSans-Regular.ttf',
+            outputPath: '/output/dm-sans/dm-sans-regular.woff2',
+          }),
+        })
       )
     })
   })
 
   describe('to skip conversion', () => {
-    it('when no font files are found in the directory', () => {
+    it('when no font files are found in the directory', async () => {
       vi.spyOn(fs, 'readdirSync').mockReturnValue([
         'README.md',
         'LICENSE.txt',
       ] as never)
 
-      convertFontsInDir('/fonts/empty')
+      await convertFontsInDir('/fonts/empty')
 
-      expect(convertFontToWoff).not.toHaveBeenCalled()
-      expect(convertFontToWoff2).not.toHaveBeenCalled()
+      expect(Worker).not.toHaveBeenCalled()
     })
   })
 
   describe('to handle conversion errors gracefully', () => {
-    it('when a font conversion throws an error', () => {
+    it('when a worker reports a conversion failure', async () => {
       vi.spyOn(fs, 'readdirSync').mockReturnValue([
         'DMSans-Regular.ttf',
       ] as never)
 
-      vi.mocked(convertFontToWoff).mockImplementation(() => {
-        throw new Error('conversion failed')
-      })
+      vi.mocked(Worker).mockImplementation(workerFactory({ success: false, error: 'conversion failed' }))
 
-      expect(() => convertFontsInDir('/fonts/dm-sans', { formats: ['woff'] })).not.toThrow()
+      await expect(convertFontsInDir('/fonts/dm-sans', { formats: ['woff'] })).resolves.toBeUndefined()
     })
   })
 })

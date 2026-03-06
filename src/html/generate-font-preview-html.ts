@@ -9,6 +9,8 @@ import log from 'fancy-log'
 import pc from 'picocolors'
 
 // Internal
+import { SOURCE_EXTENSIONS } from '../config/constants.js'
+import { getSubdirectories } from '../utils/get-subdirectories.js'
 import { generateHtmlForDir } from './utils/generate-html-for-dir.js'
 
 
@@ -25,17 +27,19 @@ export const generateFontPreviewHtml = (
   inputDir: string,
   outputDir: string
 ): void => {
-  const entries = fs.readdirSync(inputDir)
-
-  const fontDirs = entries.filter(entry => {
-    try {
-      return fs.statSync(path.join(inputDir, entry)).isDirectory()
-    } catch {
-      return false
-    }
-  })
+  const fontDirs = getSubdirectories(inputDir)
 
   if (fontDirs.length === 0) {
+    const directFonts = fs.readdirSync(inputDir).filter(e =>
+      SOURCE_EXTENSIONS.includes(path.extname(e).toLowerCase())
+    )
+
+    if (directFonts.length > 0) {
+      generateHtmlForDir(inputDir, outputDir, path.basename(inputDir))
+
+      return
+    }
+
     log(pc.yellow(`No font subdirectories found in ${pc.blue(inputDir)}`))
 
     return

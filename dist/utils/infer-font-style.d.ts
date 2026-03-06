@@ -1,9 +1,11 @@
 /**
  * Infers `'italic'` or `'normal'` from a font filename.
+ * Oblique fonts are treated as italic.
  *
  * @example
- * inferFontStyle('DMSans-BoldItalic') // → 'italic'
- * inferFontStyle('DMSans-Bold')       // → 'normal'
+ * inferFontStyle('DMSans-BoldItalic')  // -> 'italic'
+ * inferFontStyle('DMSans-BoldOblique') // -> 'italic'
+ * inferFontStyle('DMSans-Bold')        // -> 'normal'
  */
 export declare const inferFontStyle: (fileName: string) => "normal" | "italic";
 export default inferFontStyle;

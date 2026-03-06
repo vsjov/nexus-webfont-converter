@@ -4,7 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 // External
-// @ts-expect-error — no type declarations available for ttf2woff
+// @ts-expect-error - no type declarations available for ttf2woff
 import ttf2woff from 'ttf2woff';
 // Function
 // -----------------------------------------------------------------------------
@@ -17,11 +17,11 @@ import ttf2woff from 'ttf2woff';
  * @param outputPath - Absolute or relative path where the `.woff` file will be
  * written
  */
-export const convertFontToWoff = (inputPath, outputPath) => {
-    const inputBuffer = fs.readFileSync(inputPath);
+export const convertFontToWoff = async (inputPath, outputPath) => {
+    const inputBuffer = await fs.promises.readFile(inputPath);
     const woffResult = ttf2woff(inputBuffer);
-    fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-    fs.writeFileSync(outputPath, woffResult);
+    await fs.promises.mkdir(path.dirname(outputPath), { recursive: true });
+    await fs.promises.writeFile(outputPath, woffResult);
 };
 export default convertFontToWoff;
 //# sourceMappingURL=convert-font-to-woff.js.map

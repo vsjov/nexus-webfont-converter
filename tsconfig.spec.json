@@ -3,6 +3,10 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": ".",
+    "lib": [
+      "es2022",
+      "dom"
+    ],
     "types": [
       "vitest/globals",
       "vitest/importMeta",

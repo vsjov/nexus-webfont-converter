@@ -1,1 +1,1 @@
-{"version":3,"file":"convert-font-to-woff2.d.ts","sourceRoot":"","sources":["../../../src/file-utils/utils/convert-font-to-woff2.ts"],"names":[],"mappings":"AAYA;;;;;;;;GAQG;AACH,eAAO,MAAM,kBAAkB,GAAI,WAAW,MAAM,EAAE,YAAY,MAAM,KAAG,IAK1E,CAAA;AAED,eAAe,kBAAkB,CAAA"}
+{"version":3,"file":"convert-font-to-woff2.d.ts","sourceRoot":"","sources":["../../../src/file-utils/utils/convert-font-to-woff2.ts"],"names":[],"mappings":"AAYA;;;;;;;;GAQG;AACH,eAAO,MAAM,kBAAkB,GAAU,WAAW,MAAM,EAAE,YAAY,MAAM,KAAG,OAAO,CAAC,IAAI,CAK5F,CAAA;AAED,eAAe,kBAAkB,CAAA"}

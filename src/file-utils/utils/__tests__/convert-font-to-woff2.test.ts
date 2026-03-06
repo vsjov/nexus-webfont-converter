@@ -33,10 +33,10 @@ afterAll(() => {
 // -----------------------------------------------------------------------------
 describe('Expect convertFontToWoff2', () => {
   describe('to produce a valid WOFF2 file', () => {
-    it('when converting a TTF font', () => {
+    it('when converting a TTF font', async () => {
       const outputPath = path.join(OUTPUT_DIR, 'teko-bold.woff2')
 
-      convertFontToWoff2(TTF_FIXTURE, outputPath)
+      await convertFontToWoff2(TTF_FIXTURE, outputPath)
 
       const output = fs.readFileSync(outputPath)
 
@@ -48,10 +48,10 @@ describe('Expect convertFontToWoff2', () => {
       expect(output[3]).toBe(0x32)
     })
 
-    it('when converting an OTF font', () => {
+    it('when converting an OTF font', async () => {
       const outputPath = path.join(OUTPUT_DIR, 'public-sans-thin.woff2')
 
-      convertFontToWoff2(OTF_FIXTURE, outputPath)
+      await convertFontToWoff2(OTF_FIXTURE, outputPath)
 
       const output = fs.readFileSync(outputPath)
 
@@ -62,20 +62,20 @@ describe('Expect convertFontToWoff2', () => {
   })
 
   describe('to create the output directory recursively', () => {
-    it('when the output directory does not exist', () => {
+    it('when the output directory does not exist', async () => {
       const outputPath = path.join(OUTPUT_DIR, 'nested', 'dir', 'font.woff2')
 
-      convertFontToWoff2(TTF_FIXTURE, outputPath)
+      await convertFontToWoff2(TTF_FIXTURE, outputPath)
 
       expect(fs.existsSync(outputPath)).toBe(true)
     })
   })
 
   describe('to produce a file smaller than the source', () => {
-    it('when compressing a TTF to WOFF2', () => {
+    it('when compressing a TTF to WOFF2', async () => {
       const outputPath = path.join(OUTPUT_DIR, 'size-check.woff2')
 
-      convertFontToWoff2(TTF_FIXTURE, outputPath)
+      await convertFontToWoff2(TTF_FIXTURE, outputPath)
 
       const inputSize = fs.statSync(TTF_FIXTURE).size
       const outputSize = fs.statSync(outputPath).size

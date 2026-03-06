@@ -48,7 +48,7 @@ describe('Expect generateHtmlForDir', () => {
       generateHtmlForDir('/input/dm-sans', '/output/dm-sans', 'dm-sans')
 
       expect(writtenContent).toContain('<!DOCTYPE html>')
-      expect(writtenContent).toContain('<title>DM Sans — Font Preview</title>')
+      expect(writtenContent).toContain('<title>DM Sans - Font Preview</title>')
       expect(writtenContent).toContain('<h1>DM Sans</h1>')
     })
   })

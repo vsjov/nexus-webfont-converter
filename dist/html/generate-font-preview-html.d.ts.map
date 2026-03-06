@@ -1,1 +1,1 @@
-{"version":3,"file":"generate-font-preview-html.d.ts","sourceRoot":"","sources":["../../src/html/generate-font-preview-html.ts"],"names":[],"mappings":"AAgBA;;;;;;GAMG;AACH,eAAO,MAAM,uBAAuB,GAClC,UAAU,MAAM,EAChB,WAAW,MAAM,KAChB,IAwBF,CAAA;AAED,eAAe,uBAAuB,CAAA"}
+{"version":3,"file":"generate-font-preview-html.d.ts","sourceRoot":"","sources":["../../src/html/generate-font-preview-html.ts"],"names":[],"mappings":"AAkBA;;;;;;GAMG;AACH,eAAO,MAAM,uBAAuB,GAClC,UAAU,MAAM,EAChB,WAAW,MAAM,KAChB,IA0BF,CAAA;AAED,eAAe,uBAAuB,CAAA"}

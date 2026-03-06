@@ -4,6 +4,11 @@
 export const SOURCE_EXTENSIONS = ['.ttf', '.otf']
 
 /**
+ * Accepted file extensions (and extension-less files) for license files.
+ */
+export const LICENSE_EXTENSIONS = ['.txt', '.md', '.pdf', '']
+
+/**
  * Provides a mapping of numeric font weights to human-readable labels commonly
  * used in font naming conventions. This mapping is used to infer the
  * appropriate label for a font weight based on its numeric value, following the
@@ -22,6 +27,17 @@ export const FONT_WEIGHT: Record<number, string> = {
   800: 'Extra Bold',
   900: 'Black',
 }
+
+/**
+ * Default glyph groups rendered in the font preview HTML page.
+ */
+export const PREVIEW_GLYPHS: ('currency' | 'latin1_supplemental' | 'latin1' | 'latin2' | 'cyrillic')[] = [
+  'currency',
+  'latin1_supplemental',
+  'latin1',
+  'latin2',
+  'cyrillic',
+]
 
 /**
  * Ordered weight keyword map. Longer / more specific patterns are listed first

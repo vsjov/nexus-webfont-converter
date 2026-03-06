@@ -29,7 +29,7 @@ export const generateScssForDir = (fontDir, outputFontDir, dirName) => {
     const entries = fs.readdirSync(fontDir);
     const fontFiles = entries.filter(f => SOURCE_EXTENSIONS.includes(path.extname(f).toLowerCase()));
     if (fontFiles.length === 0) {
-        log(pc.yellow(`No TTF or OTF files found in ${pc.blue(fontDir)} — skipping SCSS generation`));
+        log(pc.yellow(`No TTF or OTF files found in ${pc.blue(fontDir)} - skipping SCSS generation`));
         return;
     }
     // Detect which formats are present in the output directory
@@ -38,7 +38,7 @@ export const generateScssForDir = (fontDir, outputFontDir, dirName) => {
         : [];
     const detectedFormats = FORMAT_PRIORITY.filter(ext => outputEntries.some(f => path.extname(f).toLowerCase() === ext));
     if (detectedFormats.length === 0) {
-        log(pc.yellow(`No converted font files found in ${pc.blue(outputFontDir)} — skipping SCSS generation`));
+        log(pc.yellow(`No converted font files found in ${pc.blue(outputFontDir)} - skipping SCSS generation`));
         return;
     }
     const familyName = inferFontFamilyName(dirName);

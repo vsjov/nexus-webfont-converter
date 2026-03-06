@@ -6,8 +6,6 @@ import path from 'node:path'
 // External
 import js from '@eslint/js'
 import tseslint from 'typescript-eslint'
-import pluginVue from 'eslint-plugin-vue'
-import vueParser from 'vue-eslint-parser'
 import stylistic from '@stylistic/eslint-plugin'
 import jsdoc from 'eslint-plugin-jsdoc'
 import { defineConfig } from 'eslint/config'
@@ -139,7 +137,7 @@ export const rulesCommon: Linter.RulesRecord = {
   ],
   '@stylistic/padded-blocks': ['error', 'never'],
   '@stylistic/no-tabs': 'error',
-  '@typescript-eslint/no-this-alias': 'off', // Needed in Vue
+  '@typescript-eslint/no-this-alias': 'off',
   '@typescript-eslint/ban-ts-comment': 'warn',
   '@typescript-eslint/no-unused-vars': 'warn',
 }
@@ -148,7 +146,7 @@ export const rulesTs: Linter.RulesRecord = {
   '@typescript-eslint/no-explicit-any': 'warn',
   '@typescript-eslint/ban-ts-comment': 'warn',
   '@typescript-eslint/no-empty-object-type': 'warn',
-  '@typescript-eslint/no-this-alias': 'off', // Needed in Vue
+  '@typescript-eslint/no-this-alias': 'off',
 
   // No JSDoc types in TS files
   'jsdoc/check-types': 'warn', // Don't validate JSDoc types
@@ -159,98 +157,6 @@ export const rulesTs: Linter.RulesRecord = {
   // 'jsdoc/require-param-type': 'warn', // Don't require @param {type}
   // 'jsdoc/require-returns-type': 'warn', // Don't require @returns {type}
   // 'jsdoc/valid-types': 'off', // Don't validate type syntax
-}
-
-export const rulesVue: Linter.RulesRecord = {
-  '@typescript-eslint/no-this-alias': 'off',
-  'vue/multi-word-component-names': 'off',
-  'vue/padding-line-between-blocks': ['error', 'always'],
-  'vue/component-definition-name-casing': ['error', 'PascalCase'],
-  'vue/prop-name-casing': 'off',
-  'vue/block-order': [
-    'error',
-    {
-      order: [['template', 'script'], 'style'],
-    },
-  ],
-  'vue/component-name-in-template-casing': ['error', 'PascalCase'],
-  'vue/component-options-name-casing': ['error', 'PascalCase'],
-  'vue/new-line-between-multi-line-property': [
-    'error',
-    {
-      minLineOfMultilineProperty: 2,
-    },
-  ],
-  'vue/max-attributes-per-line': [
-    'error',
-    {
-      singleline: 1,
-      multiline: {
-        max: 1,
-      }
-    }
-  ],
-  'vue/html-indent': [
-    'error',
-    2,
-    {
-      attribute: 1,
-      baseIndent: 0,
-      closeBracket: 0,
-      alignAttributesVertically: false,
-      ignores: []
-    }
-  ],
-  'vue/first-attribute-linebreak': [
-    'error',
-    {
-      singleline: 'beside',
-      multiline: 'below'
-    }
-  ],
-  'vue/html-closing-bracket-newline': [
-    'error',
-    {
-      singleline: 'never',
-      multiline: 'always'
-    }
-  ],
-  'vue/singleline-html-element-content-newline': [
-    'error',
-    {
-      ignoreWhenNoAttributes: true,
-      ignoreWhenEmpty: true,
-      ignores: [
-        'pre',
-        'textarea',
-        'label',
-        'span',
-        'a',
-        'p',
-        'h1',
-        'h2',
-        'h3',
-        'h4',
-        'h5',
-        'h6',
-        'div'
-      ]
-    }
-  ],
-  'vue/no-v-text-v-html-on-component': 'off',
-}
-
-/**
- * Removes all Vue3 specific rules and deprecations that are incompatible with
- * Vue2
- */
-export const rulesNoVue3: Linter.RulesRecord = {
-  'vue/valid-v-on': 'off',
-  'vue/no-deprecated-v-on-number-modifiers': 'off',
-  'vue/no-deprecated-dollar-scopedslots-api': 'off',
-  'vue/no-deprecated-destroyed-lifecycle': 'off',
-  'vue/no-reserved-component-names': 'off',
-  'vue/no-deprecated-filter': 'off',
 }
 
 
@@ -273,7 +179,6 @@ const globalIgnores: Linter.Config['ignores'] = [
 const globalPlugins: Linter.Config['plugins'] = {
   jsdoc,
   '@stylistic': stylistic,
-  vue: pluginVue,
 }
 
 // Settings for plain JS files (ESM or CommonJS)
@@ -350,70 +255,24 @@ const settingsTs = (
         project: path.resolve(packageDir, tsconfigPath),
         tsconfigRootDir: path.resolve(packageDir),
       },
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+        Buffer: 'readonly',
+        global: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        setImmediate: 'readonly',
+        clearImmediate: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
+      },
     },
     rules: {
       ...rulesCommon,
       ...rulesTs,
-    },
-  }
-
-  return _settings
-}
-
-const settingsVueTs = () => {
-  const _settings: Linter.Config = {
-    files: ['**/*.vue'],
-    plugins: {
-      ...globalPlugins,
-      vue: pluginVue,
-    },
-    languageOptions: {
-      parser: vueParser,
-      parserOptions: {
-        parser: {
-          js: 'espree',
-          ts: '@typescript-eslint/parser',
-          '<template>': 'espree',
-        },
-        project: null,
-        extraFileExtensions: ['.vue'],
-        ecmaVersion: 'latest',
-        sourceType: 'module',
-      },
-    },
-    rules: {
-      ...rulesCommon,
-      ...rulesVue,
-      ...rulesNoVue3,
-      // Disable type-aware rules for Vue files
-      '@typescript-eslint/no-unsafe-assignment': 'off',
-      '@typescript-eslint/no-unsafe-member-access': 'off',
-      '@typescript-eslint/no-unsafe-call': 'off',
-      '@typescript-eslint/no-unsafe-return': 'off',
-    },
-  }
-
-  return _settings
-}
-
-const settingsVueJs = () => {
-  const _settings: Linter.Config = {
-    files: ['**/*.vue'],
-    plugins: {
-      ...globalPlugins,
-      vue: pluginVue,
-    },
-    languageOptions: {
-      parser: vueParser,
-      parserOptions: {
-        project: false,
-        extraFileExtensions: ['.vue'],
-      },
-    },
-    rules: {
-      ...rulesCommon,
-      ...rulesVue,
-      ...rulesNoVue3, // Remove this in Vue3 projects
     },
   }
 
@@ -494,12 +353,5 @@ export const eslintConfig = (
     OPTIONS.tsconfigPath
       ? settingsTs(OPTIONS.tsconfigPath, OPTIONS.packageDir)
       : {}, // If no tsconfigPath is provided, skip TS settings
-
-    // Vue JS files (*.vue)
-    // --------------------
-    ...pluginVue.configs['flat/essential'],
-    OPTIONS.tsconfigPath
-      ? settingsVueTs()
-      : settingsVueJs()
   ])
 }

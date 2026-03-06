@@ -3,6 +3,10 @@
  */
 export declare const SOURCE_EXTENSIONS: string[];
 /**
+ * Accepted file extensions (and extension-less files) for license files.
+ */
+export declare const LICENSE_EXTENSIONS: string[];
+/**
  * Provides a mapping of numeric font weights to human-readable labels commonly
  * used in font naming conventions. This mapping is used to infer the
  * appropriate label for a font weight based on its numeric value, following the
@@ -11,6 +15,10 @@ export declare const SOURCE_EXTENSIONS: string[];
  * names and CSS declarations.
  */
 export declare const FONT_WEIGHT: Record<number, string>;
+/**
+ * Default glyph groups rendered in the font preview HTML page.
+ */
+export declare const PREVIEW_GLYPHS: ('currency' | 'latin1_supplemental' | 'latin1' | 'latin2' | 'cyrillic')[];
 /**
  * Ordered weight keyword map. Longer / more specific patterns are listed first
  * to prevent partial matches (e.g. `extrabold` must be checked before `bold`).

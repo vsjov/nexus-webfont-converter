@@ -9,6 +9,8 @@ import log from 'fancy-log'
 import pc from 'picocolors'
 
 // Internal
+import { SOURCE_EXTENSIONS } from '../config/constants.js'
+import { getSubdirectories } from '../utils/get-subdirectories.js'
 import { generateScssForDir } from './utils/generate-scss-for-dir.js'
 
 
@@ -25,24 +27,26 @@ import { generateScssForDir } from './utils/generate-scss-for-dir.js'
  * @example
  * ```ts
  * generateFontFaceScss('./build/in', './build/out')
- * // → writes build/out/dm-sans/dm-sans.scss
+ * // -> writes build/out/dm-sans/dm-sans.scss
  * ```
  */
 export const generateFontFaceScss = (
   inputDir: string,
   outputDir: string
 ): void => {
-  const entries = fs.readdirSync(inputDir)
-
-  const fontDirs = entries.filter(entry => {
-    try {
-      return fs.statSync(path.join(inputDir, entry)).isDirectory()
-    } catch {
-      return false
-    }
-  })
+  const fontDirs = getSubdirectories(inputDir)
 
   if (fontDirs.length === 0) {
+    const directFonts = fs.readdirSync(inputDir).filter(e =>
+      SOURCE_EXTENSIONS.includes(path.extname(e).toLowerCase())
+    )
+
+    if (directFonts.length > 0) {
+      generateScssForDir(inputDir, outputDir, path.basename(inputDir))
+
+      return
+    }
+
     log(pc.yellow(`No font subdirectories found in ${pc.blue(inputDir)}`))
 
     return

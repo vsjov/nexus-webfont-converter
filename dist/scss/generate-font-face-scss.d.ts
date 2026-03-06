@@ -9,7 +9,7 @@
  * @example
  * ```ts
  * generateFontFaceScss('./build/in', './build/out')
- * // → writes build/out/dm-sans/dm-sans.scss
+ * // -> writes build/out/dm-sans/dm-sans.scss
  * ```
  */
 export declare const generateFontFaceScss: (inputDir: string, outputDir: string) => void;

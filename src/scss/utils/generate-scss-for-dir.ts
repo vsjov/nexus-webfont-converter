@@ -40,7 +40,7 @@ export const generateScssForDir = (
   const fontFiles = entries.filter(f => SOURCE_EXTENSIONS.includes(path.extname(f).toLowerCase()))
 
   if (fontFiles.length === 0) {
-    log(pc.yellow(`No TTF or OTF files found in ${pc.blue(fontDir)} — skipping SCSS generation`))
+    log(pc.yellow(`No TTF or OTF files found in ${pc.blue(fontDir)} - skipping SCSS generation`))
 
     return
   }
@@ -55,7 +55,7 @@ export const generateScssForDir = (
   )
 
   if (detectedFormats.length === 0) {
-    log(pc.yellow(`No converted font files found in ${pc.blue(outputFontDir)} — skipping SCSS generation`))
+    log(pc.yellow(`No converted font files found in ${pc.blue(outputFontDir)} - skipping SCSS generation`))
 
     return
   }

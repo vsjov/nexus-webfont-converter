@@ -5,6 +5,9 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
+  "bin": {
+    "wfc": "./dist/cli/cli.js"
+  },
   "author": "Vladimir Jovanović <vladimir@bitersen.com>",
   "license": "Apache-2.0",
   "scripts": {
@@ -12,12 +15,17 @@
     "lint:fix": "eslint --fix ./src",
     "test": "vitest run",
     "test:watch": "vitest --watch",
-    "build": "rimraf dist && tsc --build --clean && tsc -p tsconfig.lib.json",
+    "build": "rimraf dist && tsc --build --clean && tsc -p tsconfig.lib.json && node -e \"require('fs').chmodSync('dist/cli/cli.js',0o755)\"",
     "build:watch": "tsc --build --clean && tsc -p tsconfig.lib.json --watch",
     "convert": "gulp --gulpfile dist/gulpfile.js",
+    "compile-css": "gulp compileCss --gulpfile dist/gulpfile.js",
+    "recompile-html": "gulp recompileHtml --gulpfile dist/gulpfile.js",
+    "remove-unused": "gulp removeUnused --gulpfile dist/gulpfile.js",
+    "sync": "gulp sync --gulpfile dist/gulpfile.js",
     "update-npm": "ncu -t minor --deep -u --rejectVersion \"/^\\d+\\.\\d+\\.\\d+$/\" --cooldown 14"
   },
   "dependencies": {
+    "browserslist": "^4.28.1",
     "del": "^8.0.1",
     "fancy-log": "^2.0.0",
     "gulp": "^5.0.1",
@@ -26,20 +34,20 @@
     "gulp-sass": "^6.0.1",
     "picocolors": "^1.1.1",
     "sass": "^1.97.3",
+    "tslib": "^2.8.1",
     "ttf2woff": "^3.0.0",
     "ttf2woff2": "^8.0.1"
   },
   "devDependencies": {
-    "@eslint/js": "9.39.3",
+    "@eslint/js": "10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@types/fancy-log": "^2.0.2",
     "@types/gulp": "^4.0.18",
     "@types/gulp-rename": "^2.0.7",
     "@types/jsdom": "^28.0.0",
-    "@types/node": "^24",
+    "@types/node": "^25",
     "app-root-path": "^3.1.0",
-    "eslint-plugin-jsdoc": "^57.2.1",
-    "eslint-plugin-vue": "9.33.0",
+    "eslint-plugin-jsdoc": "^62.7.1",
     "jiti": "^2.6.1",
     "jsdom": "^28.1.0",
     "npm-check-updates": "^19.6.3",
@@ -48,8 +56,7 @@
     "typescript-eslint": "^8.56.1",
     "vite": "^6.4.1",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.2.4",
-    "vue-eslint-parser": "^10.4.0"
+    "vitest": "^3.2.4"
   },
   "engines": {
     "node": ">= 20.10.0"

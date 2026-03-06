@@ -7,6 +7,6 @@
  * @param outputPath - Absolute or relative path where the `.woff` file will be
  * written
  */
-export declare const convertFontToWoff: (inputPath: string, outputPath: string) => void;
+export declare const convertFontToWoff: (inputPath: string, outputPath: string) => Promise<void>;
 export default convertFontToWoff;
 //# sourceMappingURL=convert-font-to-woff.d.ts.map

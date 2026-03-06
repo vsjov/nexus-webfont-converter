@@ -26,6 +26,22 @@ describe('Expect inferFontStyle', () => {
     it('when filename is only "Italic"', () => {
       expect(inferFontStyle('DMSans-Italic')).toBe('italic')
     })
+
+    it('when filename contains "Oblique"', () => {
+      expect(inferFontStyle('DMSans-Oblique')).toBe('italic')
+    })
+
+    it('when filename contains "oblique" (lowercase)', () => {
+      expect(inferFontStyle('dmsans-boldoblique')).toBe('italic')
+    })
+
+    it('when filename contains "OBLIQUE" (uppercase)', () => {
+      expect(inferFontStyle('DMSANS-BOLDOBLIQUE')).toBe('italic')
+    })
+
+    it('when filename contains "BoldOblique"', () => {
+      expect(inferFontStyle('DMSans-BoldOblique')).toBe('italic')
+    })
   })
 
   describe('to return "normal"', () => {

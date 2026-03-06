@@ -1,12 +1,6 @@
 import type { Linter } from 'eslint';
 export declare const rulesCommon: Linter.RulesRecord;
 export declare const rulesTs: Linter.RulesRecord;
-export declare const rulesVue: Linter.RulesRecord;
-/**
- * Removes all Vue3 specific rules and deprecations that are incompatible with
- * Vue2
- */
-export declare const rulesNoVue3: Linter.RulesRecord;
 type ModuleType = 'esm' | 'cjs';
 /**
  * Main, configurable ESLint configuration

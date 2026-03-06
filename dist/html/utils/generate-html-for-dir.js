@@ -7,9 +7,10 @@ import path from 'node:path';
 import log from 'fancy-log';
 import pc from 'picocolors';
 // Internal
-import { SOURCE_EXTENSIONS } from '../../config/constants.js';
+import { SOURCE_EXTENSIONS, PREVIEW_GLYPHS } from '../../config/constants.js';
 import { inferFontFamilyName } from '../../utils/infer-font-family-name.js';
 import { buildFontEntries } from '../../utils/build-font-entries.js';
+import { findLicenseFile } from '../../utils/find-license-file.js';
 import { templateHtmlSamples } from './template-html-samples.js';
 // Function
 // -----------------------------------------------------------------------------
@@ -25,29 +26,17 @@ export const generateHtmlForDir = (fontDir, outputFontDir, dirName) => {
     const entries = fs.readdirSync(fontDir);
     const fontFiles = entries.filter(f => SOURCE_EXTENSIONS.includes(path.extname(f).toLowerCase()));
     if (fontFiles.length === 0) {
-        log(pc.yellow(`No TTF or OTF files found in ${pc.blue(fontDir)} — skipping HTML generation`));
+        log(pc.yellow(`No TTF or OTF files found in ${pc.blue(fontDir)} - skipping HTML generation`));
         return;
     }
     const familyName = inferFontFamilyName(dirName);
-    const licenseFile = fs.existsSync(outputFontDir)
-        ? (fs.readdirSync(outputFontDir).find(f => {
-            const ext = path.extname(f).toLowerCase();
-            return fs.statSync(path.join(outputFontDir, f)).isFile() && (ext === '.txt' || ext === '');
-        }) ?? null)
-        : null;
     const fontEntries = buildFontEntries(fontFiles);
     const html = templateHtmlSamples({
         familyName,
         dirName,
         entries: fontEntries,
-        glyphs: [
-            'currency',
-            'latin1_supplemental',
-            'latin1',
-            'latin2',
-            'cyrillic',
-        ],
-        licenseFile
+        glyphs: PREVIEW_GLYPHS,
+        licenseFile: findLicenseFile(outputFontDir),
     });
     const outputFileName = `${dirName}.html`;
     const outputPath = path.join(outputFontDir, outputFileName);

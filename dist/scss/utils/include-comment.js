@@ -7,10 +7,10 @@ import { FONT_WEIGHT } from '../../config/constants.js';
 /**
  * Returns the comment label for a single `@include fontFace(...)` line,
  * matching the convention used in `ananda.scss`:
- * - 400 normal → `Normal`
- * - 400 italic → `Italic`
- * - other normal → weight label (e.g. `Bold`)
- * - other italic → weight label + ` Italic` (e.g. `Bold Italic`)
+ * - 400 normal -> `Normal`
+ * - 400 italic -> `Italic`
+ * - other normal -> weight label (e.g. `Bold`)
+ * - other italic -> weight label + ` Italic` (e.g. `Bold Italic`)
  */
 export const includeComment = (weight, style) => {
     if (weight === 400)

@@ -31,10 +31,11 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    reporters: ['dot'],
     include: ['src/**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     exclude: [
       ...configDefaults.exclude,
       './templates/**',
-    ]
+    ],
   },
 })

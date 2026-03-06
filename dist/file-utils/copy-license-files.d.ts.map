@@ -1,1 +1,1 @@
-{"version":3,"file":"copy-license-files.d.ts","sourceRoot":"","sources":["../../src/file-utils/copy-license-files.ts"],"names":[],"mappings":"AAaA;;;;;;;GAOG;AACH,eAAO,MAAM,gBAAgB,GAAI,UAAU,MAAM,EAAE,WAAW,MAAM,KAAG,IAwBtE,CAAA;AAED,eAAe,gBAAgB,CAAA"}
+{"version":3,"file":"copy-license-files.d.ts","sourceRoot":"","sources":["../../src/file-utils/copy-license-files.ts"],"names":[],"mappings":"AAgBA;;;;;;;GAOG;AACH,eAAO,MAAM,gBAAgB,GAAI,UAAU,MAAM,EAAE,WAAW,MAAM,KAAG,IAwBtE,CAAA;AAED,eAAe,gBAAgB,CAAA"}

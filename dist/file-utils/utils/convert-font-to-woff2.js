@@ -16,11 +16,11 @@ import ttf2woff2 from 'ttf2woff2';
  * @param outputPath - Absolute or relative path where the `.woff2` file will be
  * written
  */
-export const convertFontToWoff2 = (inputPath, outputPath) => {
-    const inputBuffer = fs.readFileSync(inputPath);
+export const convertFontToWoff2 = async (inputPath, outputPath) => {
+    const inputBuffer = await fs.promises.readFile(inputPath);
     const woff2Buffer = ttf2woff2(inputBuffer);
-    fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-    fs.writeFileSync(outputPath, woff2Buffer);
+    await fs.promises.mkdir(path.dirname(outputPath), { recursive: true });
+    await fs.promises.writeFile(outputPath, woff2Buffer);
 };
 export default convertFontToWoff2;
 //# sourceMappingURL=convert-font-to-woff2.js.map

@@ -11,8 +11,8 @@ import { WEIGHT_MAP } from '../config/constants.js'
  * Returns 400 (Regular) as the fallback when no keyword is matched.
  *
  * @example
- * inferFontWeight('DMSans-Bold')         // → 700
- * inferFontWeight('Roboto-ExtraLight')   // → 200
+ * inferFontWeight('DMSans-Bold')         // -> 700
+ * inferFontWeight('Roboto-ExtraLight')   // -> 200
  */
 export const inferFontWeight = (fileName: string): number => {
   for (const [pattern, weight] of WEIGHT_MAP) {

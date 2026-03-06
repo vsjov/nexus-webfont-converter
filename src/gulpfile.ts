@@ -5,17 +5,14 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
 // External
-import gulp from 'gulp'
-import log from 'fancy-log'
-import { deleteAsync } from 'del'
+import { series } from 'gulp'
 
 // Internal
 import { fontConverterPaths } from './config/paths.js'
-import { convertFontsInDir } from './file-utils/convert-fonts-in-dir.js'
-import { copyLicenseFiles } from './file-utils/copy-license-files.js'
-import { generateFontFaceScss } from './scss/generate-font-face-scss.js'
+import runPipeline from './run-pipeline.js'
 import { compileCssFiles } from './scss/compile-css.js'
-import { generateFontPreviewHtml } from './html/generate-font-preview-html.js'
+import { regenerateFontPreviewHtml } from './html/regenerate-font-preview-html.js'
+import { removeUnusedFonts } from './file-utils/remove-unused-fonts.js'
 
 
 // Setup
@@ -36,59 +33,16 @@ const PATHS = fontConverterPaths({
 })
 
 
-// Tasks
-// -----------------------------------------------------------------------------
-const cleanOutput = async () => {
-  await deleteAsync([
-    join(PATHS.convert.out, '**', '*'),
-    `!${join(PATHS.convert.out, '.gitkeep')}`,
-  ], { force: true, dot: true })
-
-  log('Cleaned output directory')
-}
-
-const convertFontsWoff = (cb: gulp.TaskFunctionCallback) => {
-  convertFontsInDir(PATHS.convert.in, { outputDir: PATHS.convert.out, formats: ['woff'] })
-  cb()
-}
-
-const convertFontsWoff2 = (cb: gulp.TaskFunctionCallback) => {
-  convertFontsInDir(PATHS.convert.in, { outputDir: PATHS.convert.out, formats: ['woff2'] })
-  cb()
-}
-
-const generateScss = (cb: gulp.TaskFunctionCallback) => {
-  generateFontFaceScss(PATHS.convert.in, PATHS.convert.out)
-  cb()
-}
-
-const compileCss = () => compileCssFiles(PATHS.convert.out)
-
-const generateHtml = (cb: gulp.TaskFunctionCallback) => {
-  generateFontPreviewHtml(PATHS.convert.in, PATHS.convert.out)
-  cb()
-}
-
-const copyLicenses = (cb: gulp.TaskFunctionCallback) => {
-  copyLicenseFiles(PATHS.convert.in, PATHS.convert.out)
-  cb()
-}
-
-const convertFonts = gulp.parallel(convertFontsWoff, convertFontsWoff2, copyLicenses)
-
-
 // Exports
 // -----------------------------------------------------------------------------
-export const convert = gulp.series(
-  cb => {
-    log('Starting webfont conversion...')
-    cb()
-  },
-  cleanOutput,
-  convertFonts,
-  generateScss,
-  compileCss,
-  generateHtml
-)
+export const convert = () => runPipeline(PATHS.convert.in, PATHS.convert.out)
+
+export const compileCss = () => compileCssFiles(PATHS.convert.out)
+
+export const recompileHtml = () => Promise.resolve(regenerateFontPreviewHtml(PATHS.convert.out))
+
+export const removeUnused = () => Promise.resolve(removeUnusedFonts(PATHS.convert.out))
+
+export const sync = series(compileCss, recompileHtml, removeUnused)
 
 export default convert

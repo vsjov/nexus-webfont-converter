@@ -50,7 +50,7 @@ describe('Expect templateHtmlSamples', () => {
         entries: singleEntry,
       })
 
-      expect(result).toContain('<title>DM Sans — Font Preview</title>')
+      expect(result).toContain('<title>DM Sans - Font Preview</title>')
       expect(result).toContain('<h1>DM Sans</h1>')
     })
   })
@@ -216,6 +216,42 @@ describe('Expect templateHtmlSamples', () => {
       })
 
       expect(result).not.toContain('<footer>')
+    })
+  })
+
+  describe('to escape HTML special characters', () => {
+    it('when familyName contains HTML injection characters', () => {
+      const result = templateHtmlSamples({
+        familyName: '<script>alert("xss")</script>',
+        dirName: 'test-font',
+        entries: singleEntry,
+      })
+
+      expect(result).not.toContain('<script>')
+      expect(result).toContain('&lt;script&gt;')
+    })
+
+    it('when dirName contains a double-quote', () => {
+      const result = templateHtmlSamples({
+        familyName: 'Test Font',
+        dirName: 'test"><script>',
+        entries: singleEntry,
+      })
+
+      expect(result).not.toContain('"><script>')
+      expect(result).toContain('&quot;&gt;&lt;script&gt;')
+    })
+
+    it('when licenseFile contains HTML injection characters', () => {
+      const result = templateHtmlSamples({
+        familyName: 'Test Font',
+        dirName: 'test-font',
+        entries: singleEntry,
+        licenseFile: '"onload="alert(1)',
+      })
+
+      expect(result).not.toContain('"onload="')
+      expect(result).toContain('&quot;onload=&quot;')
     })
   })
 })

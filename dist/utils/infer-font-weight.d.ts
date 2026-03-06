@@ -3,8 +3,8 @@
  * Returns 400 (Regular) as the fallback when no keyword is matched.
  *
  * @example
- * inferFontWeight('DMSans-Bold')         // → 700
- * inferFontWeight('Roboto-ExtraLight')   // → 200
+ * inferFontWeight('DMSans-Bold')         // -> 700
+ * inferFontWeight('Roboto-ExtraLight')   // -> 200
  */
 export declare const inferFontWeight: (fileName: string) => number;
 export default inferFontWeight;

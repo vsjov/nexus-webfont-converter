@@ -19,11 +19,11 @@ import ttf2woff2 from 'ttf2woff2'
  * @param outputPath - Absolute or relative path where the `.woff2` file will be
  * written
  */
-export const convertFontToWoff2 = (inputPath: string, outputPath: string): void => {
-  const inputBuffer = fs.readFileSync(inputPath)
+export const convertFontToWoff2 = async (inputPath: string, outputPath: string): Promise<void> => {
+  const inputBuffer = await fs.promises.readFile(inputPath)
   const woff2Buffer: Uint8Array = ttf2woff2(inputBuffer)
-  fs.mkdirSync(path.dirname(outputPath), { recursive: true })
-  fs.writeFileSync(outputPath, woff2Buffer)
+  await fs.promises.mkdir(path.dirname(outputPath), { recursive: true })
+  await fs.promises.writeFile(outputPath, woff2Buffer)
 }
 
 export default convertFontToWoff2
