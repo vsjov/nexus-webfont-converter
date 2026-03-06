@@ -12,6 +12,10 @@ directories:
 files:
   - out/**/*
 
+# Skip rebuilding native modules that are dev-only (e.g. @parcel/watcher used by electron-vite)
+buildDependenciesFromSource: false
+npmRebuild: false
+
 win:
   target:
     - target: nsis
