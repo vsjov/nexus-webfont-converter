@@ -22,9 +22,12 @@
     "recompile-html": "gulp recompileHtml --gulpfile dist/gulpfile.js",
     "remove-unused": "gulp removeUnused --gulpfile dist/gulpfile.js",
     "sync": "gulp sync --gulpfile dist/gulpfile.js",
-    "update-npm": "ncu -t minor --deep -u --rejectVersion \"/^\\d+\\.\\d+\\.\\d+$/\" --cooldown 14"
+    "update-npm": "ncu -t minor --deep -u --rejectVersion \"/^\\d+\\.\\d+\\.\\d+$/\" --cooldown 14",
+    "electron:dev": "electron-vite dev --entry out/main/index.js",
+    "electron:build": "electron-vite build && electron-builder"
   },
   "dependencies": {
+    "archiver": "^7.0.1",
     "browserslist": "^4.28.1",
     "del": "^8.0.1",
     "fancy-log": "^2.0.0",
@@ -41,12 +44,16 @@
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
+    "@types/archiver": "^7.0.0",
     "@types/fancy-log": "^2.0.2",
     "@types/gulp": "^4.0.18",
     "@types/gulp-rename": "^2.0.7",
     "@types/jsdom": "^28.0.0",
     "@types/node": "^25",
     "app-root-path": "^3.1.0",
+    "electron": "^40.8.0",
+    "electron-builder": "^26.8.1",
+    "electron-vite": "^5.0.0",
     "eslint-plugin-jsdoc": "^62.7.1",
     "jiti": "^2.6.1",
     "jsdom": "^28.1.0",

@@ -1,0 +1,26 @@
+appId: com.bitersen.webfont-converter
+productName: Webfont Converter
+copyright: Copyright © 2025 Vladimir Jovanović
+
+extraMetadata:
+  main: out/main/index.js
+
+directories:
+  output: release
+  buildResources: build-resources
+
+files:
+  - out/**/*
+
+win:
+  target:
+    - target: nsis
+    - target: portable
+
+mac:
+  target:
+    - target: dmg
+
+linux:
+  target:
+    - target: AppImage
