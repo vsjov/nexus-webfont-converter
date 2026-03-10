@@ -1,0 +1,30 @@
+name: Install package
+description: Installs NodeJS and NPM modules for the package
+
+inputs:
+  package-name:
+    description: Name of the package directory (used for cd and cache path)
+    required: true
+  node-version:
+    description: Node.js version to install
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    # Install NodeJS
+    # --------------
+    - name: Install NodeJS
+      uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # hash for v6.3.0
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'npm'
+        cache-dependency-path: ${{ inputs.package-name }}/npm-shrinkwrap.json
+
+    # Install NPM modules
+    # -------------------
+    - name: Install NPM modules
+      shell: bash
+      run: |
+        cd ${{ inputs.package-name }}
+        npm ci --ignore-scripts --loglevel error

@@ -5,6 +5,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { Worker } from 'node:worker_threads'
+import { URL } from 'node:url'
 
 // External
 import pc from 'picocolors'

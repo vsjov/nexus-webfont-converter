@@ -6,7 +6,7 @@
   "packages": {
     "": {
       "name": "nexus-webfont-converter",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "license": "Apache-2.0",
       "dependencies": {
         "@types/cli-progress": "^3.11.6",
