@@ -8,6 +8,14 @@ adheres to _[Semantic Versioning][semver]._
 ## [Unreleased]
 
 ### Features
+
+### Fixes
+
+
+
+## [1.0.2] (released: 2025-03-10)
+
+### Features
 - feat: Add .github actions and issue templates ([#1])
 
 
@@ -28,7 +36,8 @@ adheres to _[Semantic Versioning][semver]._
 - Initial release of Nexus Webfont Converter.
 
 
-[Unreleased]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.0.1...1.0.2
 [1.0.1]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.0.0...1.0.1
 [1.0.0]: https://github.com/vsjov/nexus-webfont-converter/compare/ef4e633...1.0.0
 
