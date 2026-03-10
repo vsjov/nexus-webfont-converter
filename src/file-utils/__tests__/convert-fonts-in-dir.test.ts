@@ -4,6 +4,7 @@
 // -----------------------------------------------------------------------------
 // NodeJS
 import fs from 'node:fs'
+import { URL } from 'node:url'
 
 // External
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
