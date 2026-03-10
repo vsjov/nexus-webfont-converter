@@ -1,4 +1,7 @@
-# Nexus Webfont Converter
+[![CI](https://github.com/vsjov/nexus-webfont-converter/actions/workflows/main.yml/badge.svg)](https://github.com/vsjov/nexus-webfont-converter/actions/workflows/main.yml)
+![Node.js](https://img.shields.io/node/v/nexus-webfont-converter)
+
+# Nexus Webfont Converter [![GitHub release](https://img.shields.io/github/v/release/vsjov/nexus-webfont-converter)](https://github.com/vsjov/nexus-webfont-converter/releases/latest)
 Standalone converter for **TTF** and **OTF** font files to **WOFF** and
 **WOFF2** formats.
 
