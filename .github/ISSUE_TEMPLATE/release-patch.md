@@ -58,6 +58,10 @@ Release date: _date_
             ```
     * [ ] Wait for CI to finish the release process
 
+1. **Publish the NPM package**
+    * [ ] Publish the package to NPM with `npm publish`
+    * [ ] Wait for the package to be published and verify that it is available on NPM
+
 1. **Post-release cleanup**
     * [ ] Create a branch `release-v[x.y.Z]-merge` that merges changes back into `master` branch using `ours` strategy
     * [ ] Cherry pick specific commits from the release branch, if there are any, like changelog, changes to issue templates or similar.
