@@ -60,6 +60,10 @@ Release date: _date_
             ```
     * [ ] Wait for CI to finish the release process
 
+1. **Publish the NPM package**
+    * [ ] Publish the package to NPM with `npm publish`
+    * [ ] Wait for the package to be published and verify that it is available on NPM
+
 1. **Post-release Version increment**
     * [ ] Update the version to the next major release version
     * [ ] Update shrinkwrap file with `npm shrinkwrap`.
