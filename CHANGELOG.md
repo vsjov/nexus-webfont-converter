@@ -7,6 +7,14 @@ adheres to _[Semantic Versioning][semver]._
 
 ## [Unreleased]
 
+### Features
+- feat: Add .github actions and issue templates ([#1])
+
+
+[#1]: https://github.com/vsjov/nexus-webfont-converter/pull/1
+
+
+
 ## [1.0.1] (released: 2025-03-10)
 
 ### Chores
