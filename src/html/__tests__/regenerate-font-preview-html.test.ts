@@ -5,7 +5,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 // External
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Internal
 import { regenerateFontPreviewHtml } from '../regenerate-font-preview-html.js'
@@ -56,6 +56,10 @@ const mockFontDirs = (dirs: string[], filesPerDir: Record<string, string[]> = {}
 // Tests
 // -----------------------------------------------------------------------------
 describe('Expect regenerateFontPreviewHtml', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   afterEach(() => {
     vi.restoreAllMocks()
   })

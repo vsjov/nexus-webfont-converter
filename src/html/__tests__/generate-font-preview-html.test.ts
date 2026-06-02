@@ -4,7 +4,7 @@
 import fs from 'node:fs'
 
 // External
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Internal
 import { generateFontPreviewHtml } from '../generate-font-preview-html.js'
@@ -23,6 +23,10 @@ const { generateHtmlForDir } = await import('../utils/generate-html-for-dir.js')
 // Tests
 // -----------------------------------------------------------------------------
 describe('Expect generateFontPreviewHtml', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   afterEach(() => {
     vi.restoreAllMocks()
   })

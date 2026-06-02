@@ -5,7 +5,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 // External
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Internal
 import { removeUnusedFonts } from '../remove-unused-fonts.js'
@@ -25,6 +25,10 @@ const { parseScssEntries } = await import('../../html/utils/parse-scss-entries.j
 // Tests
 // -----------------------------------------------------------------------------
 describe('Expect removeUnusedFonts', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   afterEach(() => {
     vi.restoreAllMocks()
   })
