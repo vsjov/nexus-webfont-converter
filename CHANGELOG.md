@@ -7,9 +7,8 @@ adheres to _[Semantic Versioning][semver]._
 
 ## [Unreleased]
 
-### Features
-
-### Fixes
+### NPM
+- npm: update npm packages ([#4])
 
 
 
