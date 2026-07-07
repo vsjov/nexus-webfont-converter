@@ -5,12 +5,15 @@
 // NodeJS
 import fs from 'node:fs'
 import { EventEmitter } from 'node:events'
+import os from 'node:os'
+import path from 'node:path'
+import { pathToFileURL } from 'node:url'
 
 // External
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Internal
-import { main } from '../cli.js'
+import { isCliEntrypoint, main } from '../cli.js'
 import { compileCssFiles } from '../../scss/compile-css.js'
 import { regenerateFontPreviewHtml } from '../../html/regenerate-font-preview-html.js'
 import { removeUnusedFonts } from '../../file-utils/remove-unused-fonts.js'
@@ -135,6 +138,27 @@ describe('Expect CLI', () => {
         recursive: true,
       })
       expect(runPipeline).toHaveBeenCalledWith('/fonts/source', '/fonts/web')
+    })
+  })
+
+  describe('to detect entrypoint execution', () => {
+    it('when npm bin path is a symlink to the CLI file', () => {
+      const tempDir = fs.mkdtempSync(
+        path.join(os.tmpdir(), 'nexus-wfc-entrypoint-'),
+      )
+      const realCliPath = path.join(tempDir, 'cli.js')
+      const symlinkCliPath = path.join(tempDir, 'wfc')
+
+      try {
+        fs.writeFileSync(realCliPath, '')
+        fs.symlinkSync(realCliPath, symlinkCliPath)
+
+        expect(
+          isCliEntrypoint(symlinkCliPath, pathToFileURL(realCliPath).href),
+        ).toBe(true)
+      } finally {
+        fs.rmSync(tempDir, { force: true, recursive: true })
+      }
     })
   })
 })
