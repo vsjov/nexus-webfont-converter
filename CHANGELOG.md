@@ -7,8 +7,15 @@ adheres to _[Semantic Versioning][semver]._
 
 ## [Unreleased]
 
+## CI
+- feat: add trusted NPM release automation ([#5])
+
 ### NPM
 - npm: update npm packages ([#4])
+
+
+[#4]: https://github.com/vsjov/nexus-webfont-converter/pull/4
+[#5]: https://github.com/vsjov/nexus-webfont-converter/pull/5
 
 
 

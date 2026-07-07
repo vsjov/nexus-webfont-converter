@@ -1,85 +1,103 @@
 ---
-name: Major Release X.0.0
-about: Releasing a major version of the nexus-webfont-converter
-title: "[MAJOR RELEASE] nexus-webfont-converter X.0.0"
+name: Major Release [X.0.0]
+about: Releasing a major version of nexus-webfont-converter
+title: "[MAJOR RELEASE] nexus-webfont-converter [X.0.0]"
 labels: RELEASE
 assignees: vsjov
 ---
 
-# Major Release X.0.0
+# Major Release [X.0.0]
 
 Release date: _date_
 
-**IMPORTANT:** `master` branch is considered to be a stable branch and should always work. Unfinished features should never be merged there!
+Package: `nexus-webfont-converter`
+Registry: `https://registry.npmjs.org`
+
+**IMPORTANT:** `master` is the stable branch and should always work. Do not merge unfinished work there.
+
+## Release Contents
+
+- [ ] List the breaking changes, features, fixes, and documentation changes included in this major release.
+- [ ] Confirm all included work is merged to `master`.
+- [ ] Confirm migration notes are written for every breaking change.
+- [ ] Confirm README examples still match the public API.
+
+Included issues / PRs:
+
+- #...
 
 ## Release Workflow
 
-1. **Pre-release tasks**
-    * [ ] Create a release issue from this template
-    * [ ] List features / PRs that go into this release (below this check)
-        * [Github issue number]
-    * [ ] Confirm that all breaking changes and required features are implemented on the `master` branch.
-    * [ ] Confirm that a migration guide has been written if breaking changes are introduced.
+1. **Create the release branch**
+    - [ ] Create `release/[X.0.0]` from `master`.
+    - [ ] Confirm the release branch name exactly matches the package version.
+    - [ ] Resolve any release-only fixes on the release branch.
 
-1. **Create a `release-v[X.0.0]` branch:**
-    * [ ] Create branch from `master`
-    * [ ] Run `npm run lint`, `npm run build`, and `npm run test` to ensure that build is successful.
-    * [ ] Ensure that everything works as expected and that no code is broken.
-    * [ ] (optional) Create `release-fix` commits, which may solve some issues found during release testing.
-        * [ ] (optional) Recreate npm-shrinkwrap.json file with `npm shrinkwrap` if the `package.json` file was changed.
-        * [ ] (optional) Push any changes to dist directories if needed.
+2. **Set the release version**
+    - [ ] Update `package.json` and `npm-shrinkwrap.json`:
+        ```bash
+        npm run version-update -- [X.0.0]
+        ```
+    - [ ] Commit the version changes:
+        ```bash
+        git add package.json npm-shrinkwrap.json
+        git commit -m "Version bump to [X.0.0]"
+        ```
 
-1. **Set the major version**
-    * [ ] Set the major version in `package.json` (reset minor and patch to 0), re-run `npm shrinkwrap` and commit the change
+3. **Update the changelog**
+    - [ ] Add `## [[X.0.0]] - YYYY-MM-DD`.
+    - [ ] Move released entries from `## [Unreleased]` into the new version section.
+    - [ ] Add a clear breaking-changes section.
+    - [ ] Keep unreleased entries under `## [Unreleased]`.
+    - [ ] Update changelog compare links for `nexus-webfont-converter`.
+    - [ ] Commit `CHANGELOG.md`.
 
-1. **Update Changelog**
-    * [ ] Create a new section where the version number matches the release number. Move all released PR's to this section, while keeping the unreleased PR's in the `## Unreleased` section.
-    * [ ] Highlight any breaking changes prominently in the Changelog.
-    * [ ] Update links at the bottom
-    * [ ] Commit the Changelog changes
+4. **Run release checks**
+    - [ ] Run the full local gate with `npm run build-all`.
+    - [ ] Review and commit any expected `dist/` changes.
+    - [ ] Confirm NPM trusted publishing is configured for `vsjov/nexus-webfont-converter`, workflow filename `main.yml`, no environment name, and allowed action `npm publish`.
 
-1. **Perform Unit and E2E Tests**
-    * [ ] Run `npm start` that includes tests, linting, and build.
-        * All tasks and tests should pass
-            * [ ] Linux (WSL/VM/native Ubuntu LTS)
-            * [ ] MacOS
-        * [ ] Any changes to `dist/` directories should be examined and committed if ok
-    * [ ] Any tests that were not automated should be performed manually.
-    * [ ] Verify migration guide by following it from the previous major version.
+5. **Verify migration path**
+    - [ ] Test the documented migration from the previous major version.
+    - [ ] Verify a consuming project can install and import `nexus-webfont-converter`.
+    - [ ] Verify CLI conversion output for at least one representative font fixture or consuming project.
 
-1. **Start the release**
-    * [ ] Tag a release on the release branch (**THIS STARTS THE RELEASE**)
+6. **Push the release branch**
+    - [ ] Push the completed release branch:
+        ```bash
+        git push -u origin release/[X.0.0]
+        ```
+    - [ ] Wait for GitHub Actions to pass on the release branch.
+    - [ ] Confirm the remote release branch tip is the exact commit to release. The tag workflow requires the branch and tag to match.
+
+7. **Tag and publish the release**
+    - [ ] Tag the exact release branch tip and push the tag:
         ```bash
         git tag -a v[X.0.0] -m "Release [X.0.0]"
         git push origin v[X.0.0]
         ```
-        * Optionally: If something goes bad during the CI run, you can revert the release by deleting the tag and pushing the change:
-            ```bash
-            git tag -d v[X.0.0]
-            git push origin --delete v[X.0.0]
-            ```
-    * [ ] Wait for CI to finish the release process
+    - [ ] Optionally: If something goes bad during the CI run, revert the release by deleting the tag and pushing the change:
+        ```bash
+        git tag -d v[X.0.0]
+        git push origin --delete v[X.0.0]
+        ```
+    - [ ] Wait for both `test-and-build` and `publish-npm-package` to pass on the tag workflow. Publishing is automatic and does not require local npm authentication.
+    - [ ] Verify `nexus-webfont-converter@[X.0.0]` is available on NPM.
+    - [ ] If the workflow fails before publishing, delete the tag before correcting and retagging the release branch. Never reuse a version after it has been published.
 
-1. **Publish the NPM package**
-    * [ ] Publish the package to NPM with `npm publish`
-    * [ ] Wait for the package to be published and verify that it is available on NPM
+8. **Set the next development version**
+    - [ ] Bump to the next minor development version:
+        ```bash
+        npm run version-update -- minor
+        git add package.json npm-shrinkwrap.json
+        git commit -m "chore: bump next development version"
+        git push
+        ```
 
-1. **Post-release Version increment**
-    * [ ] Update the version to the next major release version
-    * [ ] Update shrinkwrap file with `npm shrinkwrap`.
-    * [ ] Run the `npm run build` and commit any changes to `dist/` directories if there are any.
-    * [ ] Commit the changes
+9. **Merge back**
+    - [ ] Open a PR from `release/[X.0.0]` to `master`.
+    - [ ] Use PR title `release: merge v[X.0.0] into master`.
+    - [ ] Merge after checks pass.
 
-1. **Merge-back PR**
-    * [ ] Create a PR that merges changes from `release-v[X.0.0]` back into `master` branch.
-        * Use this template for the PR: `release: Merge back [X.0.0] into master`
-            ```markdown
-            ## Description
-            This PR merges release branch `v[X.0.0]` into `master`.
-
-            ## How to test
-            Nothing to test in this step. Everything was already tested before the tag was pushed.
-
-            ## Code review checklist
-            Please check everything that applies for this PR.
-            ```
+10. **Finish**
+    - [ ] Close this release issue.

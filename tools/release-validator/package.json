@@ -1,0 +1,17 @@
+{
+  "name": "@nexus-webfont-converter/release-validator",
+  "private": true,
+  "type": "module",
+  "main": "./dist/validate-release-tag.js",
+  "types": "./dist/validate-release-tag.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/validate-release-tag.d.ts",
+      "import": "./dist/validate-release-tag.js"
+    }
+  },
+  "scripts": {
+    "build": "rimraf dist && tsc -p tsconfig.json",
+    "test": "vitest run src --reporter=dot"
+  }
+}
