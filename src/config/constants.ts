@@ -10,7 +10,7 @@ export const OUTPUT_FORMATS = ['woff', 'woff2'] as const
 
 /** Union of the string literals in `OUTPUT_FORMATS` (i.e. `'woff' | 'woff2'`).
  * */
-export type OutputFormat = typeof OUTPUT_FORMATS[number]
+export type OutputFormat = (typeof OUTPUT_FORMATS)[number]
 
 /**
  * Accepted file extensions (and extension-less files) for license files.
@@ -40,13 +40,13 @@ export const FONT_WEIGHT: Record<number, string> = {
 /**
  * Default glyph groups rendered in the font preview HTML page.
  */
-export const PREVIEW_GLYPHS: ('currency' | 'latin1_supplemental' | 'latin1' | 'latin2' | 'cyrillic')[] = [
-  'currency',
-  'latin1_supplemental',
-  'latin1',
-  'latin2',
-  'cyrillic',
-]
+export const PREVIEW_GLYPHS: (
+  | 'currency'
+  | 'latin1_supplemental'
+  | 'latin1'
+  | 'latin2'
+  | 'cyrillic'
+)[] = ['currency', 'latin1_supplemental', 'latin1', 'latin2', 'cyrillic']
 
 /**
  * Ordered weight keyword map. Longer / more specific patterns are listed first
@@ -66,4 +66,3 @@ export const WEIGHT_MAP: Array<[RegExp, number]> = [
   [/black/i, 900],
   [/heavy/i, 900],
 ]
-

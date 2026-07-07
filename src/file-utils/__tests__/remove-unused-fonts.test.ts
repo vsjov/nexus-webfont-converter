@@ -10,17 +10,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 // Internal
 import { removeUnusedFonts } from '../remove-unused-fonts.js'
 
-
 // Mocks
 // -----------------------------------------------------------------------------
-vi.mock('../../utils/logger.js', () => ({ default: () => ({ log: vi.fn(), warn: vi.fn() }) }))
+vi.mock('../../utils/logger.js', () => ({
+  default: () => ({ log: vi.fn(), warn: vi.fn() }),
+}))
 
 vi.mock('../../html/utils/parse-scss-entries.js', () => ({
   parseScssEntries: vi.fn(),
 }))
 
-const { parseScssEntries } = await import('../../html/utils/parse-scss-entries.js')
-
+const { parseScssEntries } =
+  await import('../../html/utils/parse-scss-entries.js')
 
 // Tests
 // -----------------------------------------------------------------------------
@@ -37,7 +38,11 @@ describe('Expect removeUnusedFonts', () => {
     it('when a woff2 file has no matching @include', () => {
       vi.spyOn(fs, 'readdirSync').mockImplementation(((dirPath: string) => {
         if (String(dirPath).endsWith('dm-sans')) {
-          return ['dm-sans-regular.woff2', 'dm-sans-medium.woff2', 'dm-sans.scss'] as never
+          return [
+            'dm-sans-regular.woff2',
+            'dm-sans-medium.woff2',
+            'dm-sans.scss',
+          ] as never
         }
 
         return ['dm-sans'] as never
@@ -50,7 +55,9 @@ describe('Expect removeUnusedFonts', () => {
 
       vi.spyOn(fs, 'existsSync').mockReturnValue(true)
       vi.spyOn(fs, 'readFileSync').mockReturnValue('scss content' as never)
-      const unlinkSpy = vi.spyOn(fs, 'unlinkSync').mockImplementation(() => undefined)
+      const unlinkSpy = vi
+        .spyOn(fs, 'unlinkSync')
+        .mockImplementation(() => undefined)
 
       vi.mocked(parseScssEntries).mockReturnValue([
         { normalizedBase: 'dm-sans-regular', weight: 400, style: 'normal' },
@@ -59,7 +66,9 @@ describe('Expect removeUnusedFonts', () => {
       removeUnusedFonts('/output')
 
       expect(unlinkSpy).toHaveBeenCalledTimes(1)
-      expect(unlinkSpy).toHaveBeenCalledWith(path.join('/output', 'dm-sans', 'dm-sans-medium.woff2'))
+      expect(unlinkSpy).toHaveBeenCalledWith(
+        path.join('/output', 'dm-sans', 'dm-sans-medium.woff2'),
+      )
     })
 
     it('when both woff and woff2 variants of the same unused font exist', () => {
@@ -83,7 +92,9 @@ describe('Expect removeUnusedFonts', () => {
 
       vi.spyOn(fs, 'existsSync').mockReturnValue(true)
       vi.spyOn(fs, 'readFileSync').mockReturnValue('scss content' as never)
-      const unlinkSpy = vi.spyOn(fs, 'unlinkSync').mockImplementation(() => undefined)
+      const unlinkSpy = vi
+        .spyOn(fs, 'unlinkSync')
+        .mockImplementation(() => undefined)
 
       vi.mocked(parseScssEntries).mockReturnValue([
         { normalizedBase: 'dm-sans-regular', weight: 400, style: 'normal' },
@@ -92,8 +103,12 @@ describe('Expect removeUnusedFonts', () => {
       removeUnusedFonts('/output')
 
       expect(unlinkSpy).toHaveBeenCalledTimes(2)
-      expect(unlinkSpy).toHaveBeenCalledWith(path.join('/output', 'dm-sans', 'dm-sans-medium.woff'))
-      expect(unlinkSpy).toHaveBeenCalledWith(path.join('/output', 'dm-sans', 'dm-sans-medium.woff2'))
+      expect(unlinkSpy).toHaveBeenCalledWith(
+        path.join('/output', 'dm-sans', 'dm-sans-medium.woff'),
+      )
+      expect(unlinkSpy).toHaveBeenCalledWith(
+        path.join('/output', 'dm-sans', 'dm-sans-medium.woff2'),
+      )
     })
   })
 
@@ -101,7 +116,11 @@ describe('Expect removeUnusedFonts', () => {
     it('when all font files are in the SCSS', () => {
       vi.spyOn(fs, 'readdirSync').mockImplementation(((dirPath: string) => {
         if (String(dirPath).endsWith('dm-sans')) {
-          return ['dm-sans-regular.woff2', 'dm-sans-bold.woff2', 'dm-sans.scss'] as never
+          return [
+            'dm-sans-regular.woff2',
+            'dm-sans-bold.woff2',
+            'dm-sans.scss',
+          ] as never
         }
 
         return ['dm-sans'] as never
@@ -113,7 +132,9 @@ describe('Expect removeUnusedFonts', () => {
 
       vi.spyOn(fs, 'existsSync').mockReturnValue(true)
       vi.spyOn(fs, 'readFileSync').mockReturnValue('scss content' as never)
-      const unlinkSpy = vi.spyOn(fs, 'unlinkSync').mockImplementation(() => undefined)
+      const unlinkSpy = vi
+        .spyOn(fs, 'unlinkSync')
+        .mockImplementation(() => undefined)
 
       vi.mocked(parseScssEntries).mockReturnValue([
         { normalizedBase: 'dm-sans-regular', weight: 400, style: 'normal' },
@@ -148,7 +169,9 @@ describe('Expect removeUnusedFonts', () => {
 
       vi.spyOn(fs, 'existsSync').mockReturnValue(true)
       vi.spyOn(fs, 'readFileSync').mockReturnValue('scss content' as never)
-      const unlinkSpy = vi.spyOn(fs, 'unlinkSync').mockImplementation(() => undefined)
+      const unlinkSpy = vi
+        .spyOn(fs, 'unlinkSync')
+        .mockImplementation(() => undefined)
 
       vi.mocked(parseScssEntries).mockReturnValue([
         { normalizedBase: 'dm-sans-regular', weight: 400, style: 'normal' },
@@ -158,7 +181,9 @@ describe('Expect removeUnusedFonts', () => {
 
       // Only dm-sans-medium.woff2 should be deleted - not scss/css/html
       expect(unlinkSpy).toHaveBeenCalledTimes(1)
-      expect(unlinkSpy).toHaveBeenCalledWith(path.join('/output', 'dm-sans', 'dm-sans-medium.woff2'))
+      expect(unlinkSpy).toHaveBeenCalledWith(
+        path.join('/output', 'dm-sans', 'dm-sans-medium.woff2'),
+      )
     })
   })
 
@@ -166,7 +191,9 @@ describe('Expect removeUnusedFonts', () => {
     it('when the SCSS file does not exist', () => {
       vi.spyOn(fs, 'readdirSync').mockReturnValue(['dm-sans'] as never)
 
-      vi.spyOn(fs, 'statSync').mockReturnValue({ isDirectory: () => true } as never)
+      vi.spyOn(fs, 'statSync').mockReturnValue({
+        isDirectory: () => true,
+      } as never)
       vi.spyOn(fs, 'existsSync').mockReturnValue(false)
 
       removeUnusedFonts('/output')
@@ -178,7 +205,9 @@ describe('Expect removeUnusedFonts', () => {
   describe('to do nothing', () => {
     it('when output directory has no subdirectories', () => {
       vi.spyOn(fs, 'readdirSync').mockReturnValue(['README.md'] as never)
-      vi.spyOn(fs, 'statSync').mockReturnValue({ isDirectory: () => false } as never)
+      vi.spyOn(fs, 'statSync').mockReturnValue({
+        isDirectory: () => false,
+      } as never)
 
       removeUnusedFonts('/output')
 

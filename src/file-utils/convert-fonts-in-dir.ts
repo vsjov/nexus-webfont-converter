@@ -18,23 +18,21 @@ import { toHyphenated } from '../utils/to-hyphenated.js'
 import type { OutputFormat } from '../config/constants.js'
 import type { ProgressOptions } from '../utils/progress.js'
 
-
 // Types
 // -----------------------------------------------------------------------------
 export type ConvertFontsInDirOptions = ProgressOptions & {
-  outputDir?: string,
-  formats?: OutputFormat[],
+  outputDir?: string
+  formats?: OutputFormat[]
 }
 
 type ConversionTask = {
-  inputPath: string,
-  outputPath: string,
-  format: OutputFormat,
-  sourceName: string,
-  normalizedBase: string,
-  onProgress?: (label: string) => void,
+  inputPath: string
+  outputPath: string
+  format: OutputFormat
+  sourceName: string
+  normalizedBase: string
+  onProgress?: (label: string) => void
 }
-
 
 // Helpers
 // -----------------------------------------------------------------------------
@@ -42,26 +40,41 @@ const runTask = (task: ConversionTask): Promise<void> =>
   new Promise(resolve => {
     const worker = new Worker(
       new URL('./utils/font-conversion-worker.js', import.meta.url),
-      { workerData: { inputPath: task.inputPath, outputPath: task.outputPath, format: task.format } }
+      {
+        workerData: {
+          inputPath: task.inputPath,
+          outputPath: task.outputPath,
+          format: task.format,
+        },
+      },
     )
 
-    worker.on('message', (msg: { success: boolean, error?: string }) => {
+    worker.on('message', (msg: { success: boolean; error?: string }) => {
       if (msg.success) {
-        task.onProgress?.(`Generated ${pc.green(`${task.normalizedBase}.${task.format}`)} from ${pc.blue(task.sourceName)}`)
+        task.onProgress?.(
+          `Generated ${pc.green(`${task.normalizedBase}.${task.format}`)} from ${pc.blue(task.sourceName)}`,
+        )
       } else {
-        task.onProgress?.(`Failed to convert ${pc.blue(task.sourceName)} to ${task.format.toUpperCase()}: ${msg.error}`)
+        task.onProgress?.(
+          `Failed to convert ${pc.blue(task.sourceName)} to ${task.format.toUpperCase()}: ${msg.error}`,
+        )
       }
 
       resolve()
     })
 
     worker.on('error', (err: Error) => {
-      task.onProgress?.(`Worker error for ${pc.blue(task.sourceName)}: ${err.message}`)
+      task.onProgress?.(
+        `Worker error for ${pc.blue(task.sourceName)}: ${err.message}`,
+      )
       resolve()
     })
   })
 
-const runWithPool = async (tasks: ConversionTask[], concurrency: number): Promise<void> => {
+const runWithPool = async (
+  tasks: ConversionTask[],
+  concurrency: number,
+): Promise<void> => {
   const queue = [...tasks]
 
   const runLoop = async (): Promise<void> => {
@@ -71,9 +84,10 @@ const runWithPool = async (tasks: ConversionTask[], concurrency: number): Promis
     }
   }
 
-  await Promise.all(Array.from({ length: Math.min(concurrency, tasks.length) }, runLoop))
+  await Promise.all(
+    Array.from({ length: Math.min(concurrency, tasks.length) }, runLoop),
+  )
 }
-
 
 // Function
 // -----------------------------------------------------------------------------
@@ -96,19 +110,17 @@ const runWithPool = async (tasks: ConversionTask[], concurrency: number): Promis
  */
 export const convertFontsInDir = async (
   dirPath: string,
-  options: ConvertFontsInDirOptions = {}
+  options: ConvertFontsInDirOptions = {},
 ): Promise<void> => {
-  const {
-    outputDir,
-    formats = ['woff', 'woff2'],
-    onProgress,
-    onWarn,
-  } = options
+  const { outputDir, formats = ['woff', 'woff2'], onProgress, onWarn } = options
 
-  const allEntries = fs.readdirSync(dirPath, { recursive: true, encoding: 'utf-8' })
+  const allEntries = fs.readdirSync(dirPath, {
+    recursive: true,
+    encoding: 'utf-8',
+  })
 
   const fontFiles = allEntries.filter(entry =>
-    SOURCE_EXTENSIONS.includes(path.extname(entry).toLowerCase())
+    SOURCE_EXTENSIONS.includes(path.extname(entry).toLowerCase()),
   )
 
   if (fontFiles.length === 0) {
@@ -124,7 +136,9 @@ export const convertFontsInDir = async (
       ? path.join(outputDir, path.dirname(relPath))
       : path.dirname(inputPath)
 
-    const normalizedBase = toHyphenated(path.basename(relPath, path.extname(relPath)))
+    const normalizedBase = toHyphenated(
+      path.basename(relPath, path.extname(relPath)),
+    )
     const sourceName = path.basename(relPath)
 
     return formats.map(format => ({

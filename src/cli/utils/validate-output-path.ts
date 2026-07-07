@@ -3,7 +3,6 @@
 // NodeJS
 import path from 'node:path'
 
-
 // Function
 // -----------------------------------------------------------------------------
 /**
@@ -19,7 +18,10 @@ import path from 'node:path'
  * @param resolvedOut - Absolute path to the output directory
  * @returns Error message if invalid, `null` if valid
  */
-const validateOutputPath = (resolvedIn: string, resolvedOut: string): string | null => {
+const validateOutputPath = (
+  resolvedIn: string,
+  resolvedOut: string,
+): string | null => {
   if (resolvedOut === resolvedIn) {
     return 'Output directory cannot be the same as the input directory.'
   }

@@ -9,10 +9,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 // Internal
 import { generateScssForDir } from '../generate-scss-for-dir.js'
 
-
 // Mocks
 // -----------------------------------------------------------------------------
-
 
 // Tests
 // -----------------------------------------------------------------------------
@@ -25,8 +23,10 @@ describe('Expect generateScssForDir', () => {
     it('when font files and converted output exist', () => {
       // Source directory has TTF files
       vi.spyOn(fs, 'readdirSync').mockImplementation(((dir: string) => {
-        if (dir.includes('input')) return ['DMSans-Regular.ttf', 'DMSans-Bold.ttf']
-        if (dir.includes('output')) return ['dm-sans-regular.woff2', 'dm-sans-bold.woff2']
+        if (dir.includes('input'))
+          return ['DMSans-Regular.ttf', 'DMSans-Bold.ttf']
+        if (dir.includes('output'))
+          return ['dm-sans-regular.woff2', 'dm-sans-bold.woff2']
 
         return []
       }) as never)
@@ -55,11 +55,7 @@ describe('Expect generateScssForDir', () => {
     it('when multiple font variants exist', () => {
       vi.spyOn(fs, 'readdirSync').mockImplementation(((dir: string) => {
         if (dir.includes('input')) {
-          return [
-            'DMSans-Regular.ttf',
-            'DMSans-Italic.ttf',
-            'DMSans-Bold.ttf',
-          ]
+          return ['DMSans-Regular.ttf', 'DMSans-Italic.ttf', 'DMSans-Bold.ttf']
         }
 
         if (dir.includes('output')) return ['dm-sans-regular.woff2']
@@ -81,7 +77,8 @@ describe('Expect generateScssForDir', () => {
 
       generateScssForDir('/input/dm-sans', '/output/dm-sans', 'dm-sans')
 
-      const includeCount = (writtenContent.match(/@include fontFace/g) ?? []).length
+      const includeCount = (writtenContent.match(/@include fontFace/g) ?? [])
+        .length
 
       expect(includeCount).toBe(3)
     })
@@ -90,7 +87,8 @@ describe('Expect generateScssForDir', () => {
   describe('to include variant comments', () => {
     it('when generating includes for different weights', () => {
       vi.spyOn(fs, 'readdirSync').mockImplementation(((dir: string) => {
-        if (dir.includes('input')) return ['DMSans-Regular.ttf', 'DMSans-Bold.ttf']
+        if (dir.includes('input'))
+          return ['DMSans-Regular.ttf', 'DMSans-Bold.ttf']
         if (dir.includes('output')) return ['dm-sans-regular.woff2']
 
         return []
@@ -119,7 +117,8 @@ describe('Expect generateScssForDir', () => {
     it('when both woff2 and woff files exist in output', () => {
       vi.spyOn(fs, 'readdirSync').mockImplementation(((dir: string) => {
         if (dir.includes('input')) return ['DMSans-Regular.ttf']
-        if (dir.includes('output')) return ['dm-sans-regular.woff2', 'dm-sans-regular.woff']
+        if (dir.includes('output'))
+          return ['dm-sans-regular.woff2', 'dm-sans-regular.woff']
 
         return []
       }) as never)
@@ -161,7 +160,7 @@ describe('Expect generateScssForDir', () => {
       expect(fs.writeFileSync).toHaveBeenCalledWith(
         '/output/dm-sans/dm-sans.scss',
         expect.any(String),
-        'utf-8'
+        'utf-8',
       )
     })
   })

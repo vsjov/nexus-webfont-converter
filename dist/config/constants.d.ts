@@ -8,7 +8,7 @@ export declare const SOURCE_EXTENSIONS: string[];
 export declare const OUTPUT_FORMATS: readonly ["woff", "woff2"];
 /** Union of the string literals in `OUTPUT_FORMATS` (i.e. `'woff' | 'woff2'`).
  * */
-export type OutputFormat = typeof OUTPUT_FORMATS[number];
+export type OutputFormat = (typeof OUTPUT_FORMATS)[number];
 /**
  * Accepted file extensions (and extension-less files) for license files.
  */

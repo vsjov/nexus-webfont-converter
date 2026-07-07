@@ -6,7 +6,6 @@ import { describe, expect, it } from 'vitest'
 // Internal
 import { inferFontWeight } from '../infer-font-weight.js'
 
-
 // Tests
 // -----------------------------------------------------------------------------
 describe('Expect inferFontWeight', () => {

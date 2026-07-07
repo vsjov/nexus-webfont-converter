@@ -6,7 +6,6 @@ import { describe, expect, it } from 'vitest'
 // Internal
 import { includeComment } from '../include-comment.js'
 
-
 // Tests
 // -----------------------------------------------------------------------------
 describe('Expect includeComment', () => {

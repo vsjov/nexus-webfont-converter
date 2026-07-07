@@ -9,10 +9,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 // Internal
 import { generateHtmlForDir } from '../generate-html-for-dir.js'
 
-
 // Mocks
 // -----------------------------------------------------------------------------
-
 
 // Tests
 // -----------------------------------------------------------------------------
@@ -24,7 +22,8 @@ describe('Expect generateHtmlForDir', () => {
   describe('to generate an HTML preview file', () => {
     it('when font files exist in the source directory', () => {
       vi.spyOn(fs, 'readdirSync').mockImplementation(((dir: string) => {
-        if (dir.includes('input')) return ['DMSans-Regular.ttf', 'DMSans-Bold.ttf']
+        if (dir.includes('input'))
+          return ['DMSans-Regular.ttf', 'DMSans-Bold.ttf']
         if (dir.includes('output')) return ['LICENSE.txt']
 
         return []
@@ -69,7 +68,7 @@ describe('Expect generateHtmlForDir', () => {
       expect(fs.writeFileSync).toHaveBeenCalledWith(
         '/output/dm-sans/dm-sans.html',
         expect.any(String),
-        'utf-8'
+        'utf-8',
       )
     })
   })
@@ -182,7 +181,9 @@ describe('Expect generateHtmlForDir', () => {
 
       generateHtmlForDir('/input/dm-sans', '/output/dm-sans', 'dm-sans')
 
-      expect(fs.mkdirSync).toHaveBeenCalledWith('/output/dm-sans', { recursive: true })
+      expect(fs.mkdirSync).toHaveBeenCalledWith('/output/dm-sans', {
+        recursive: true,
+      })
     })
   })
 })

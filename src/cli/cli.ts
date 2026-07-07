@@ -18,17 +18,15 @@ import { compileCssFiles } from '../scss/compile-css.js'
 import { regenerateFontPreviewHtml } from '../html/regenerate-font-preview-html.js'
 import { removeUnusedFonts } from '../file-utils/remove-unused-fonts.js'
 
-
 // Version
 // -----------------------------------------------------------------------------
 const require = createRequire(import.meta.url)
 
 const { name, version, description } = require('../../package.json') as {
-  name: string,
-  version: string,
-  description: string,
+  name: string
+  version: string
+  description: string
 }
-
 
 // Help text
 // -----------------------------------------------------------------------------
@@ -60,14 +58,12 @@ ${pc.bold('Examples:')}
   wfc --out ./fonts/web --sync
 `
 
-
 // Helpers
 // -----------------------------------------------------------------------------
 function exitWithError(message: string): never {
   console.error(`${pc.red('Error:')} ${message}`)
   process.exit(1)
 }
-
 
 // Main
 // -----------------------------------------------------------------------------
@@ -112,15 +108,16 @@ const main = async () => {
 
   // Maintenance commands - only --out is needed
   if (isMaintenanceMode) {
-    if (!fs.existsSync(resolvedOut) || !fs.statSync(resolvedOut).isDirectory()) {
+    if (
+      !fs.existsSync(resolvedOut) ||
+      !fs.statSync(resolvedOut).isDirectory()
+    ) {
       exitWithError(`Output directory does not exist: ${pc.blue(resolvedOut)}`)
     }
 
     if (values['compile-css'] || values['sync']) {
       await new Promise<void>((resolve, reject) => {
-        compileCssFiles(resolvedOut)
-          .on('end', resolve)
-          .on('error', reject)
+        compileCssFiles(resolvedOut).on('end', resolve).on('error', reject)
       })
     }
 

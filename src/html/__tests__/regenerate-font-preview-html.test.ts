@@ -10,10 +10,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 // Internal
 import { regenerateFontPreviewHtml } from '../regenerate-font-preview-html.js'
 
-
 // Mocks
 // -----------------------------------------------------------------------------
-vi.mock('../utils/logger.js', () => ({ default: () => ({ log: vi.fn(), warn: vi.fn() }) }))
+vi.mock('../utils/logger.js', () => ({
+  default: () => ({ log: vi.fn(), warn: vi.fn() }),
+}))
 
 vi.mock('../utils/parse-scss-entries.js', () => ({
   parseScssEntries: vi.fn(),
@@ -24,12 +25,15 @@ vi.mock('../utils/template-html-samples.js', () => ({
 }))
 
 const { parseScssEntries } = await import('../utils/parse-scss-entries.js')
-const { templateHtmlSamples } = await import('../utils/template-html-samples.js')
-
+const { templateHtmlSamples } =
+  await import('../utils/template-html-samples.js')
 
 // Helpers
 // -----------------------------------------------------------------------------
-const mockFontDirs = (dirs: string[], filesPerDir: Record<string, string[]> = {}) => {
+const mockFontDirs = (
+  dirs: string[],
+  filesPerDir: Record<string, string[]> = {},
+) => {
   vi.spyOn(fs, 'readdirSync').mockImplementation(((dirPath: string) => {
     const dirStr = String(dirPath)
 
@@ -44,14 +48,17 @@ const mockFontDirs = (dirs: string[], filesPerDir: Record<string, string[]> = {}
     const p = String(filePath)
 
     // Files inside a font dir (not the font dirs themselves)
-    if (Object.values(filesPerDir).flat().some(f => p.endsWith(f))) {
+    if (
+      Object.values(filesPerDir)
+        .flat()
+        .some(f => p.endsWith(f))
+    ) {
       return { isDirectory: () => false, isFile: () => true }
     }
 
     return { isDirectory: () => true, isFile: () => false }
   }) as never)
 }
-
 
 // Tests
 // -----------------------------------------------------------------------------
@@ -69,7 +76,9 @@ describe('Expect regenerateFontPreviewHtml', () => {
       mockFontDirs(['dm-sans'])
 
       vi.spyOn(fs, 'existsSync').mockReturnValue(true)
-      vi.spyOn(fs, 'readFileSync').mockReturnValue('@include fontFace("DM Sans", "dm-sans-regular", 400, "normal");' as never)
+      vi.spyOn(fs, 'readFileSync').mockReturnValue(
+        '@include fontFace("DM Sans", "dm-sans-regular", 400, "normal");' as never,
+      )
       vi.spyOn(fs, 'writeFileSync').mockImplementation(() => undefined)
 
       vi.mocked(parseScssEntries).mockReturnValue([
@@ -84,7 +93,7 @@ describe('Expect regenerateFontPreviewHtml', () => {
       expect(fs.writeFileSync).toHaveBeenCalledWith(
         path.join('/output', 'dm-sans', 'dm-sans.html'),
         '<html></html>',
-        'utf-8'
+        'utf-8',
       )
     })
   })
@@ -119,7 +128,10 @@ describe('Expect regenerateFontPreviewHtml', () => {
   describe('to do nothing', () => {
     it('when output directory has no subdirectories', () => {
       vi.spyOn(fs, 'readdirSync').mockReturnValue(['README.md'] as never)
-      vi.spyOn(fs, 'statSync').mockReturnValue({ isDirectory: () => false, isFile: () => true } as never)
+      vi.spyOn(fs, 'statSync').mockReturnValue({
+        isDirectory: () => false,
+        isFile: () => true,
+      } as never)
 
       regenerateFontPreviewHtml('/output')
 
@@ -143,7 +155,9 @@ describe('Expect regenerateFontPreviewHtml', () => {
       }) as never)
 
       vi.spyOn(fs, 'existsSync').mockReturnValue(true)
-      vi.spyOn(fs, 'readFileSync').mockReturnValue('@include fontFace("DM Sans", "dm-sans-regular", 400, "normal");' as never)
+      vi.spyOn(fs, 'readFileSync').mockReturnValue(
+        '@include fontFace("DM Sans", "dm-sans-regular", 400, "normal");' as never,
+      )
       vi.spyOn(fs, 'writeFileSync').mockImplementation(() => undefined)
 
       vi.mocked(parseScssEntries).mockReturnValue([

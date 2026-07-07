@@ -25,11 +25,18 @@ export const buildFontTargets = (outputDir) => {
         }
     });
     if (fontDirs.length > 0) {
-        return fontDirs.map(dirName => ({ outputFontDir: path.join(outputDir, dirName), dirName }));
+        return fontDirs.map(dirName => ({
+            outputFontDir: path.join(outputDir, dirName),
+            dirName,
+        }));
     }
     return entries
-        .filter(e => path.extname(e).toLowerCase() === '.scss' && !path.basename(e).startsWith('_'))
-        .map(f => ({ outputFontDir: outputDir, dirName: path.basename(f, '.scss') }));
+        .filter(e => path.extname(e).toLowerCase() === '.scss' &&
+        !path.basename(e).startsWith('_'))
+        .map(f => ({
+        outputFontDir: outputDir,
+        dirName: path.basename(f, '.scss'),
+    }));
 };
 export default buildFontTargets;
 //# sourceMappingURL=build-font-targets.js.map

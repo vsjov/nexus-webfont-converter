@@ -9,7 +9,7 @@ import gulp from 'gulp';
 import { deleteAsync } from 'del';
 import pc from 'picocolors';
 // Internal
-import { SOURCE_EXTENSIONS, LICENSE_EXTENSIONS, OUTPUT_FORMATS } from './config/constants.js';
+import { SOURCE_EXTENSIONS, LICENSE_EXTENSIONS, OUTPUT_FORMATS, } from './config/constants.js';
 import { getSubdirectories } from './utils/get-subdirectories.js';
 import { convertFontsInDir } from './file-utils/convert-fonts-in-dir.js';
 import { copyLicenseFiles } from './file-utils/copy-license-files.js';
@@ -19,17 +19,18 @@ import { generateFontPreviewHtml } from './html/generate-font-preview-html.js';
 import createProgress from './utils/progress.js';
 // Helpers
 // -----------------------------------------------------------------------------
-const countFontFiles = (dirPath) => fs.readdirSync(dirPath, { recursive: true, encoding: 'utf-8' })
-    .filter(entry => SOURCE_EXTENSIONS.includes(path.extname(entry).toLowerCase()))
-    .length;
-const countLicenseFiles = (dirPath) => fs.readdirSync(dirPath, { recursive: true, encoding: 'utf-8' })
+const countFontFiles = (dirPath) => fs
+    .readdirSync(dirPath, { recursive: true, encoding: 'utf-8' })
+    .filter(entry => SOURCE_EXTENSIONS.includes(path.extname(entry).toLowerCase())).length;
+const countLicenseFiles = (dirPath) => fs
+    .readdirSync(dirPath, { recursive: true, encoding: 'utf-8' })
     .filter(entry => {
     if (path.basename(entry) === '.gitkeep')
         return false;
     const ext = path.extname(entry).toLowerCase();
-    return LICENSE_EXTENSIONS.includes(ext) && fs.statSync(path.join(dirPath, entry)).isFile();
-})
-    .length;
+    return (LICENSE_EXTENSIONS.includes(ext) &&
+        fs.statSync(path.join(dirPath, entry)).isFile());
+}).length;
 const computeTotalSteps = (inputDir, formats) => {
     const fontCount = countFontFiles(inputDir);
     const licenseCount = countLicenseFiles(inputDir);
@@ -59,10 +60,7 @@ const runPipeline = (inputDir, outputDir) => {
     const warnings = [];
     const warn = (msg) => warnings.push(msg);
     const cleanOutput = async () => {
-        await deleteAsync([
-            join(outputDir, '**', '*'),
-            `!${join(outputDir, '.gitkeep')}`,
-        ], { force: true, dot: true });
+        await deleteAsync([join(outputDir, '**', '*'), `!${join(outputDir, '.gitkeep')}`], { force: true, dot: true });
         progress.tick('Cleaned output directory');
     };
     const convertFonts = () => convertFontsInDir(inputDir, {

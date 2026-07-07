@@ -6,7 +6,6 @@ import { describe, expect, it } from 'vitest'
 // Internal
 import { inferFontFamilyName } from '../infer-font-family-name.js'
 
-
 // Tests
 // -----------------------------------------------------------------------------
 describe('Expect inferFontFamilyName', () => {
@@ -32,7 +31,9 @@ describe('Expect inferFontFamilyName', () => {
 
   describe('to join words with spaces', () => {
     it('when input has multiple hyphen-separated parts', () => {
-      expect(inferFontFamilyName('open-sans-condensed')).toBe('Open Sans Condensed')
+      expect(inferFontFamilyName('open-sans-condensed')).toBe(
+        'Open Sans Condensed',
+      )
     })
   })
 

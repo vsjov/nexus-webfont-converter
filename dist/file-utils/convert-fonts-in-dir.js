@@ -14,7 +14,13 @@ import { toHyphenated } from '../utils/to-hyphenated.js';
 // Helpers
 // -----------------------------------------------------------------------------
 const runTask = (task) => new Promise(resolve => {
-    const worker = new Worker(new URL('./utils/font-conversion-worker.js', import.meta.url), { workerData: { inputPath: task.inputPath, outputPath: task.outputPath, format: task.format } });
+    const worker = new Worker(new URL('./utils/font-conversion-worker.js', import.meta.url), {
+        workerData: {
+            inputPath: task.inputPath,
+            outputPath: task.outputPath,
+            format: task.format,
+        },
+    });
     worker.on('message', (msg) => {
         if (msg.success) {
             task.onProgress?.(`Generated ${pc.green(`${task.normalizedBase}.${task.format}`)} from ${pc.blue(task.sourceName)}`);
@@ -60,8 +66,11 @@ const runWithPool = async (tasks, concurrency) => {
  * ```
  */
 export const convertFontsInDir = async (dirPath, options = {}) => {
-    const { outputDir, formats = ['woff', 'woff2'], onProgress, onWarn, } = options;
-    const allEntries = fs.readdirSync(dirPath, { recursive: true, encoding: 'utf-8' });
+    const { outputDir, formats = ['woff', 'woff2'], onProgress, onWarn } = options;
+    const allEntries = fs.readdirSync(dirPath, {
+        recursive: true,
+        encoding: 'utf-8',
+    });
     const fontFiles = allEntries.filter(entry => SOURCE_EXTENSIONS.includes(path.extname(entry).toLowerCase()));
     if (fontFiles.length === 0) {
         onWarn?.(`No TTF or OTF files found in ${pc.blue(dirPath)}`);

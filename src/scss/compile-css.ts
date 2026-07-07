@@ -12,11 +12,9 @@ import lightningcss from 'gulp-lightningcss'
 // Internal
 import type { ParsedPath } from 'gulp-rename'
 
-
 // Setup
 // -----------------------------------------------------------------------------
 const sass = gulpSass(sassCompiler)
-
 
 // Functions
 // -----------------------------------------------------------------------------
@@ -28,11 +26,14 @@ const sass = gulpSass(sassCompiler)
  * @param outputDir - The directory containing generated `.scss` files.
  */
 export const compileCssFiles = (outputDir: string) => {
-  return gulp.src(`${outputDir}/**/*.scss`, { base: outputDir })
+  return gulp
+    .src(`${outputDir}/**/*.scss`, { base: outputDir })
     .pipe(sass().on('error', sass.logError))
     .pipe(lightningcss({ minify: true, sourceMap: false }))
-    .pipe(rename((path: ParsedPath) => {
-      path.extname = '.css'
-    }))
+    .pipe(
+      rename((path: ParsedPath) => {
+        path.extname = '.css'
+      }),
+    )
     .pipe(gulp.dest(outputDir))
 }

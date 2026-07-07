@@ -45,9 +45,11 @@ export type FunctionParameters = { [key: string | number]: unknown }
  */
 export const setOptions = <T extends FunctionParameters>(
   defaults: T,
-  parameters?: Partial<T>
+  parameters?: Partial<T>,
 ): T => {
-  if (!parameters) { return defaults }
+  if (!parameters) {
+    return defaults
+  }
 
   const updatedObject = {} as T
   const dKeys = Object.keys(defaults) as Array<keyof T>

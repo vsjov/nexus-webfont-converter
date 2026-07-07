@@ -4,7 +4,6 @@
 import cliProgress from 'cli-progress'
 import pc from 'picocolors'
 
-
 // Types
 // -----------------------------------------------------------------------------
 /**
@@ -13,10 +12,10 @@ import pc from 'picocolors'
  */
 export type ProgressOptions = {
   /** Called after each completed pipeline step with a human-readable label. */
-  onProgress?: (label: string) => void,
+  onProgress?: (label: string) => void
 
   /** Called when a non-fatal issue is encountered (e.g. missing files). */
-  onWarn?: (message: string) => void,
+  onWarn?: (message: string) => void
 }
 
 /**
@@ -24,9 +23,8 @@ export type ProgressOptions = {
  */
 export type ProgressReporter = {
   /** Advances the progress bar by one step and updates the displayed label. */
-  tick: (label: string) => void,
+  tick: (label: string) => void
 }
-
 
 // Function
 // -----------------------------------------------------------------------------
@@ -36,15 +34,20 @@ export type ProgressReporter = {
  * @param total - Total number of steps the pipeline will execute
  * @returns A reporter with `tick`, `warn`, and `stop` methods
  */
-const createProgress = (total: number): ProgressReporter & { stop: (finalLabel?: string) => void } => {
-  const bar = new cliProgress.SingleBar({
-    format: `${pc.cyan('{bar}')} {percentage}% | {value}/{total} | {label}`,
-    barCompleteChar: '\u2588',
-    barIncompleteChar: '\u2591',
-    hideCursor: true,
-    clearOnComplete: false,
-    stopOnComplete: false,
-  }, cliProgress.Presets.shades_classic)
+const createProgress = (
+  total: number,
+): ProgressReporter & { stop: (finalLabel?: string) => void } => {
+  const bar = new cliProgress.SingleBar(
+    {
+      format: `${pc.cyan('{bar}')} {percentage}% | {value}/{total} | {label}`,
+      barCompleteChar: '\u2588',
+      barIncompleteChar: '\u2591',
+      hideCursor: true,
+      clearOnComplete: false,
+      stopOnComplete: false,
+    },
+    cliProgress.Presets.shades_classic,
+  )
 
   bar.start(total, 0, { label: 'Starting...' })
 

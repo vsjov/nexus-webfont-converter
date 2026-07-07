@@ -11,7 +11,6 @@ import { afterAll, describe, expect, it } from 'vitest'
 // Internal
 import { convertFontToWoff } from '../convert-font-to-woff.js'
 
-
 // Paths
 // -----------------------------------------------------------------------------
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -21,13 +20,11 @@ const OUTPUT_DIR = path.join(__dirname, '__output__')
 const TTF_FIXTURE = path.join(MOCKS_DIR, 'teko-bold.ttf')
 const OTF_FIXTURE = path.join(MOCKS_DIR, 'public-sans-thin.otf')
 
-
 // Cleanup
 // -----------------------------------------------------------------------------
 afterAll(() => {
   fs.rmSync(OUTPUT_DIR, { recursive: true, force: true })
 })
-
 
 // Tests
 // -----------------------------------------------------------------------------

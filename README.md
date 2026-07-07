@@ -225,6 +225,28 @@ Run unit tests with:
 npm run test
 ```
 
+### Repository scripts
+
+For Nexus Webfont Converter development:
+
+```bash
+npm run format:check
+npm run format
+npm run lint
+npm run lint:fix
+npm run test
+npm run build
+npm run build-all
+```
+
+- `npm run format:check` checks repository formatting with Oxfmt
+- `npm run format` formats repository files with Oxfmt
+- `npm run lint` checks source files with Oxlint
+- `npm run lint:fix` applies safe Oxlint fixes
+- `npm run test` runs the source Vitest suite
+- `npm run build` compiles package output into `dist/`
+- `npm run build-all` runs formatting checks, linting, tests, builds, and package checks
+
 ## Credits
 This project would not be possible without the following open source libraries:
 - [ttf2woff](https://github.com/fontello/ttf2woff)
@@ -233,6 +255,7 @@ This project would not be possible without the following open source libraries:
 - [sass](https://sass-lang.com/)
 - [vitest](https://vitest.dev/)
 - [typescript](https://www.typescriptlang.org/)
-- [eslint](https://eslint.org/)
+- [oxlint](https://oxc.rs/docs/guide/usage/linter.html)
+- [oxfmt](https://oxc.rs/docs/guide/usage/formatter.html)
 
 Author: [Vladimir Jovanović (vsjov)](https://github.com/vsjov/)

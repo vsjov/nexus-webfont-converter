@@ -13,7 +13,7 @@ export const inferFontFamilyName = (dirName: string): string =>
     .map(word =>
       word.length <= 2
         ? word.toUpperCase()
-        : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
     )
     .join(' ')
 

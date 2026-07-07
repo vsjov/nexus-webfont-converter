@@ -88,14 +88,13 @@ const main = async () => {
     const resolvedOut = path.resolve(expandTilde(outArg));
     // Maintenance commands - only --out is needed
     if (isMaintenanceMode) {
-        if (!fs.existsSync(resolvedOut) || !fs.statSync(resolvedOut).isDirectory()) {
+        if (!fs.existsSync(resolvedOut) ||
+            !fs.statSync(resolvedOut).isDirectory()) {
             exitWithError(`Output directory does not exist: ${pc.blue(resolvedOut)}`);
         }
         if (values['compile-css'] || values['sync']) {
             await new Promise((resolve, reject) => {
-                compileCssFiles(resolvedOut)
-                    .on('end', resolve)
-                    .on('error', reject);
+                compileCssFiles(resolvedOut).on('end', resolve).on('error', reject);
             });
         }
         if (values['recompile-html'] || values['sync']) {

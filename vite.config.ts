@@ -32,9 +32,6 @@ export default defineConfig({
       'scripts/**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
       'tools/release-validator/src/**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
     ],
-    exclude: [
-      ...configDefaults.exclude,
-      './templates/**',
-    ],
+    exclude: [...configDefaults.exclude, './templates/**'],
   },
 })

@@ -3,7 +3,6 @@
 // External
 import pc from 'picocolors'
 
-
 // Types
 // -----------------------------------------------------------------------------
 /**
@@ -12,12 +11,11 @@ import pc from 'picocolors'
  */
 export type Logger = {
   /** Writes a plain message to stdout. */
-  log: (message: string) => void,
+  log: (message: string) => void
 
   /** Writes a yellow-prefixed warning message to stderr. */
-  warn: (message: string) => void,
+  warn: (message: string) => void
 }
-
 
 // Function
 // -----------------------------------------------------------------------------

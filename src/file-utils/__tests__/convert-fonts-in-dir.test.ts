@@ -15,21 +15,21 @@ import { convertFontsInDir } from '../convert-fonts-in-dir.js'
 // Types
 import type { Worker as WorkerType } from 'node:worker_threads'
 
-
 // Mocks
 // -----------------------------------------------------------------------------
 const { workerFactory } = vi.hoisted(() => {
-  const workerFactory = (message: { success: boolean, error?: string }) => function WorkerMock() {
-    const handlers: Record<string, (arg: unknown) => void> = {}
+  const workerFactory = (message: { success: boolean; error?: string }) =>
+    function WorkerMock() {
+      const handlers: Record<string, (arg: unknown) => void> = {}
 
-    setImmediate(() => handlers['message']?.(message))
+      setImmediate(() => handlers['message']?.(message))
 
-    return {
-      on: (_event: string, handler: (arg: unknown) => void) => {
-        handlers[_event] = handler
-      },
-    } as unknown as WorkerType
-  }
+      return {
+        on: (_event: string, handler: (arg: unknown) => void) => {
+          handlers[_event] = handler
+        },
+      } as unknown as WorkerType
+    }
 
   return { workerFactory }
 })
@@ -45,7 +45,6 @@ vi.mock('node:worker_threads', async importOriginal => {
 
 // Re-import the mocked module to access the mock constructor
 const { Worker } = await import('node:worker_threads')
-
 
 // Tests
 // -----------------------------------------------------------------------------
@@ -85,7 +84,9 @@ describe('Expect convertFontsInDir', () => {
 
       expect(Worker).toHaveBeenCalledWith(
         expect.any(URL),
-        expect.objectContaining({ workerData: expect.objectContaining({ format: 'woff2' }) })
+        expect.objectContaining({
+          workerData: expect.objectContaining({ format: 'woff2' }),
+        }),
       )
     })
 
@@ -100,7 +101,9 @@ describe('Expect convertFontsInDir', () => {
 
       expect(Worker).toHaveBeenCalledWith(
         expect.any(URL),
-        expect.objectContaining({ workerData: expect.objectContaining({ format: 'woff' }) })
+        expect.objectContaining({
+          workerData: expect.objectContaining({ format: 'woff' }),
+        }),
       )
     })
   })
@@ -135,7 +138,7 @@ describe('Expect convertFontsInDir', () => {
           workerData: expect.objectContaining({
             outputPath: expect.stringContaining('dm-sans-bold-italic.woff2'),
           }),
-        })
+        }),
       )
     })
   })
@@ -158,7 +161,7 @@ describe('Expect convertFontsInDir', () => {
             inputPath: '/fonts/dm-sans/DMSans-Regular.ttf',
             outputPath: '/output/dm-sans/dm-sans-regular.woff2',
           }),
-        })
+        }),
       )
     })
   })
@@ -182,9 +185,13 @@ describe('Expect convertFontsInDir', () => {
         'DMSans-Regular.ttf',
       ] as never)
 
-      vi.mocked(Worker).mockImplementation(workerFactory({ success: false, error: 'conversion failed' }))
+      vi.mocked(Worker).mockImplementation(
+        workerFactory({ success: false, error: 'conversion failed' }),
+      )
 
-      await expect(convertFontsInDir('/fonts/dm-sans', { formats: ['woff'] })).resolves.toBeUndefined()
+      await expect(
+        convertFontsInDir('/fonts/dm-sans', { formats: ['woff'] }),
+      ).resolves.toBeUndefined()
     })
   })
 })

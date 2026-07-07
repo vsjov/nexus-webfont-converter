@@ -7,8 +7,9 @@ adheres to _[Semantic Versioning][semver]._
 
 ## [Unreleased]
 
-## CI
+### Features
 - feat: add trusted NPM release automation ([#5])
+- feat: replace ESLint with Oxlint and Oxfmt ([#6])
 
 ### NPM
 - npm: update npm packages ([#4])
@@ -16,6 +17,7 @@ adheres to _[Semantic Versioning][semver]._
 
 [#4]: https://github.com/vsjov/nexus-webfont-converter/pull/4
 [#5]: https://github.com/vsjov/nexus-webfont-converter/pull/5
+[#6]: https://github.com/vsjov/nexus-webfont-converter/pull/6
 
 
 

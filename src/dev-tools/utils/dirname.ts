@@ -7,7 +7,6 @@ import { fileURLToPath } from 'node:url'
 // Types
 import type { URL } from 'node:url'
 
-
 // Functions
 // -----------------------------------------------------------------------------
 /**

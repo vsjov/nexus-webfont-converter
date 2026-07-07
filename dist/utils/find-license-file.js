@@ -16,10 +16,11 @@ import { LICENSE_EXTENSIONS } from '../config/constants.js';
 export const findLicenseFile = (dirPath) => {
     if (!fs.existsSync(dirPath))
         return null;
-    return fs.readdirSync(dirPath).find(f => {
+    return (fs.readdirSync(dirPath).find(f => {
         const ext = path.extname(f).toLowerCase();
-        return fs.statSync(path.join(dirPath, f)).isFile() && LICENSE_EXTENSIONS.includes(ext);
-    }) ?? null;
+        return (fs.statSync(path.join(dirPath, f)).isFile() &&
+            LICENSE_EXTENSIONS.includes(ext));
+    }) ?? null);
 };
 export default findLicenseFile;
 //# sourceMappingURL=find-license-file.js.map
