@@ -8,6 +8,14 @@ adheres to _[Semantic Versioning][semver]._
 ## [Unreleased]
 
 ### Features
+
+### Fixes
+
+
+
+## [1.1.0]
+
+### Features
 - feat: add trusted NPM release automation ([#5])
 - feat: replace ESLint with Oxlint and Oxfmt ([#6])
 
@@ -38,13 +46,16 @@ adheres to _[Semantic Versioning][semver]._
 - Add changelog
 
 
+
 ## [1.0.0] (released: 2025-03-09)
 
 ### Features
 - Initial release of Nexus Webfont Converter.
 
 
-[Unreleased]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.0.2...HEAD
+
+[Unreleased]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.0.2...1.1.0
 [1.0.2]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.0.1...1.0.2
 [1.0.1]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.0.0...1.0.1
 [1.0.0]: https://github.com/vsjov/nexus-webfont-converter/compare/ef4e633...1.0.0
