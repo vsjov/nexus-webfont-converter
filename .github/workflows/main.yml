@@ -23,7 +23,7 @@ jobs:
       # Checkout
       # --------
       - name: Clone the nexus-webfont-converter repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # hash for v6.0.2
+        uses: actions/checkout@v6
         with:
           path: nexus-webfont-converter
 
@@ -37,7 +37,13 @@ jobs:
 
       # Lint, test, build
       # -----------------
-      - name: Run ESLint
+      - name: Run Oxfmt check
+        shell: bash
+        run: |
+          cd nexus-webfont-converter
+          npm run format:check
+
+      - name: Run Oxlint
         shell: bash
         run: |
           cd nexus-webfont-converter
@@ -79,10 +85,10 @@ jobs:
           cd nexus-webfont-converter
           npm run pack:check
 
-      # Check that dist/ is up to date
-      # --------------------------------
-      - name: Check if build output differs from committed dist/
-        id: changes-dist
+      # Check that install and build output are committed
+      # -------------------------------------------------
+      - name: Check for uncommitted files
+        id: changes-working-tree
         shell: bash
         run: |
           cd nexus-webfont-converter
@@ -92,11 +98,11 @@ jobs:
             echo "changes=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Fail if build output differs from committed dist/
-        if: steps.changes-dist.outputs.changes == 'true'
+      - name: Fail if install or build output is uncommitted
+        if: steps.changes-working-tree.outputs.changes == 'true'
         shell: bash
         run: |
-          echo "::error::Build output differs from committed dist/. Run 'npm run build' locally and commit the changes."
+          echo "::error::Install or build output differs from committed files. Run the checks locally and commit the expected changes."
           exit 1
 
   ###########################
@@ -115,7 +121,7 @@ jobs:
       # Checkout
       # --------
       - name: Clone the nexus-webfont-converter repository with release history
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # hash for v6.0.2
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           path: nexus-webfont-converter
@@ -123,7 +129,7 @@ jobs:
       # Install NodeJS
       # --------------
       - name: Install NodeJS for NPM trusted publishing
-        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # hash for v6.3.0
+        uses: actions/setup-node@v6
         with:
           node-version: 24
           package-manager-cache: false
