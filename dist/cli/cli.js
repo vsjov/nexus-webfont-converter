@@ -63,10 +63,18 @@ function exitWithError(message) {
 /**
  * Checks whether this module is running as the CLI entrypoint.
  *
+ * @param argvPath - Executed script path, usually `process.argv[1]`
+ * @param moduleUrl - Current module URL, usually `import.meta.url`
  * @returns `true` when this file was executed directly
+ * @throws If either path cannot be resolved on disk
  */
-const isCliEntrypoint = () => Boolean(process.argv[1]) &&
-    path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+export const isCliEntrypoint = (argvPath = process.argv[1], moduleUrl = import.meta.url) => {
+    if (!argvPath) {
+        return false;
+    }
+    return (fs.realpathSync.native(path.resolve(argvPath)) ===
+        fs.realpathSync.native(fileURLToPath(moduleUrl)));
+};
 /**
  * Handles unhandled CLI errors by printing a user-facing error and exiting.
  *
