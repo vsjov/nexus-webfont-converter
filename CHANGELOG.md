@@ -8,6 +8,14 @@ adheres to _[Semantic Versioning][semver]._
 ## [Unreleased]
 
 ### Features
+
+### Fixes
+
+
+
+## [1.1.2] (released: 2026-07-07)
+
+### Features
 - ci: create GitHub Releases automatically from version tags ([#13])
 
 ### Fixes
@@ -70,7 +78,8 @@ adheres to _[Semantic Versioning][semver]._
 
 
 
-[Unreleased]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.1.2...HEAD
+[1.1.2]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.1.1...1.1.2
 [1.1.1]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.1.0...1.1.1
 [1.1.0]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.0.2...1.1.0
 [1.0.2]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.0.1...1.0.2
