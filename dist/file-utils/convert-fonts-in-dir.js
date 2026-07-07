@@ -1,10 +1,10 @@
 // Imports
 // -----------------------------------------------------------------------------
 // NodeJS
+import { fork } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { Worker } from 'node:worker_threads';
 import { URL } from 'node:url';
 // External
 import pc from 'picocolors';
@@ -48,7 +48,11 @@ const findSourceFontFiles = (dirPath) => fs.readdirSync(dirPath, {
     .filter(isSourceFontEntry)
     .map(entry => getRelativeEntryPath(dirPath, entry));
 /**
- * Converts one source font to one or more output formats in a worker thread.
+ * Converts one source font to one or more output formats in a forked child
+ * process. Child processes are used instead of worker threads because the
+ * native ttf2woff2 addon can be loaded by only one thread per process; a
+ * process per conversion keeps every parallel WOFF2 conversion on the fast
+ * native path.
  *
  * @param task - Conversion task metadata and callbacks
  * @param slot - Zero-based worker pool slot index
@@ -57,12 +61,13 @@ const findSourceFontFiles = (dirPath) => fs.readdirSync(dirPath, {
 const runTask = (task, slot) => new Promise(resolve => {
     let isSettled = false;
     const results = [];
-    const worker = new Worker(new URL('./utils/font-conversion-worker.js', import.meta.url), {
-        execArgv: process.execArgv.filter(arg => arg !== '--input-type=module'),
-        workerData: {
+    const worker = fork(new URL('./utils/font-conversion-worker.js', import.meta.url), [
+        JSON.stringify({
             inputPath: task.inputPath,
             outputs: task.outputs,
-        },
+        }),
+    ], {
+        execArgv: process.execArgv.filter(arg => arg !== '--input-type=module'),
     });
     task.onWorkerStart?.(slot, `Starting ${pc.blue(task.sourceName)}`);
     const reportResult = (result) => {
@@ -91,6 +96,18 @@ const runTask = (task, slot) => new Promise(resolve => {
             settle(results, false);
         }
     };
+    const settleWithRemainingFailures = (buildError) => {
+        const failures = task.outputs
+            .filter(output => !results.some(r => r.format === output.format))
+            .map(output => ({
+            format: output.format,
+            success: false,
+            error: buildError(),
+        }));
+        for (const failure of failures)
+            reportResult(failure);
+        settle([...results, ...failures], false);
+    };
     worker.on('message', (msg) => {
         if ('status' in msg) {
             const label = `Converting ${pc.blue(task.sourceName)} to ${msg.status.format.toUpperCase()}`;
@@ -107,20 +124,12 @@ const runTask = (task, slot) => new Promise(resolve => {
         settle(msg.results, false);
     });
     worker.on('error', (err) => {
-        settle(task.outputs.map(output => ({
-            format: output.format,
-            success: false,
-            error: `Worker error: ${err.message}`,
-        })));
+        settleWithRemainingFailures(() => `Worker error: ${err.message}`);
     });
     worker.on('exit', (code) => {
         if (isSettled)
             return;
-        settle(task.outputs.map(output => ({
-            format: output.format,
-            success: false,
-            error: `Worker exited before sending a conversion result with code ${code}`,
-        })));
+        settleWithRemainingFailures(() => `Worker exited before sending a conversion result with code ${code ?? 'unknown'}`);
     });
 });
 /**
@@ -234,10 +243,12 @@ const groupCandidatesBySource = (candidates, onStatus, onWorkerStart, onWorkerSt
 // -----------------------------------------------------------------------------
 /**
  * Recursively scans `dirPath` for all `*.ttf` and `*.otf` files and converts
- * them to the requested web font formats using a pool of worker threads for
- * true CPU parallelism. Each output file is placed alongside the source file
- * by default, or inside `options.outputDir` when provided (preserving the
- * relative sub-directory structure).
+ * them to the requested web font formats using a pool of forked child
+ * processes for true CPU parallelism. Child processes (rather than worker
+ * threads) let every parallel conversion load the native ttf2woff2 addon.
+ * Each output file is placed alongside the source file by default, or inside
+ * `options.outputDir` when provided (preserving the relative sub-directory
+ * structure).
  *
  * @param dirPath - Directory to scan for source font files
  * @param options - Optional configuration
@@ -276,6 +287,9 @@ export const convertFontsInDir = async (dirPath, options = {}) => {
     const tasks = groupCandidatesBySource(dedupedCandidates, onStatus, onWorkerStart, onWorkerStatus, onWorkerDone, onProgress, onWarn);
     const results = await runWithPool(tasks, os.availableParallelism());
     const failureCount = results.filter(result => !result.success).length;
+    if (results.some(result => result.usedWasmFallback)) {
+        onWarn?.('WOFF2 conversion used the slower WASM fallback because the native ttf2woff2 addon could not be loaded.');
+    }
     if (failureCount > 0) {
         throw new Error(`${failureCount} font conversion${failureCount === 1 ? '' : 's'} failed.`);
     }

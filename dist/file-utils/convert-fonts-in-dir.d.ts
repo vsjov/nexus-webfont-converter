@@ -7,10 +7,12 @@ export type ConvertFontsInDirOptions = ProgressOptions & {
 };
 /**
  * Recursively scans `dirPath` for all `*.ttf` and `*.otf` files and converts
- * them to the requested web font formats using a pool of worker threads for
- * true CPU parallelism. Each output file is placed alongside the source file
- * by default, or inside `options.outputDir` when provided (preserving the
- * relative sub-directory structure).
+ * them to the requested web font formats using a pool of forked child
+ * processes for true CPU parallelism. Child processes (rather than worker
+ * threads) let every parallel conversion load the native ttf2woff2 addon.
+ * Each output file is placed alongside the source file by default, or inside
+ * `options.outputDir` when provided (preserving the relative sub-directory
+ * structure).
  *
  * @param dirPath - Directory to scan for source font files
  * @param options - Optional configuration

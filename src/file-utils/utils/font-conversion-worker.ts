@@ -2,44 +2,50 @@
 // -----------------------------------------------------------------------------
 // NodeJS
 import fs from 'node:fs'
-import { workerData, parentPort } from 'node:worker_threads'
 
 // Internal
 import { convertFontToWoff } from './convert-font-to-woff.js'
 import { convertFontToWoff2 } from './convert-font-to-woff2.js'
+import { loadNativeWoff2Converter } from './load-native-woff2-converter.js'
 
 // Worker
 // -----------------------------------------------------------------------------
-if (!parentPort) process.exit(1)
+// Runs as a forked child process rather than a worker thread: the native
+// ttf2woff2 addon is not context-aware and can be loaded by only one thread
+// per process, so each conversion needs its own process to stay on the fast
+// native path. The task payload arrives as JSON in the first argument and
+// results are reported over the IPC channel.
+if (!process.send) process.exit(1)
+
+const sendToParent = process.send.bind(process)
 
 type WorkerOutput = {
   outputPath: string
   format: 'woff' | 'woff2'
 }
 
-const payload = workerData as {
+const payload = JSON.parse(process.argv[2] ?? '{}') as {
   inputPath: string
-  outputPath?: string
-  format?: 'woff' | 'woff2'
   outputs?: WorkerOutput[]
 }
 
-const outputs: WorkerOutput[] =
-  payload.outputs ??
-  (payload.outputPath && payload.format
-    ? [
-        {
-          outputPath: payload.outputPath,
-          format: payload.format,
-        },
-      ]
-    : [])
+const outputs: WorkerOutput[] = payload.outputs ?? []
+
+/**
+ * Checks whether WOFF2 conversion is about to use the slow WASM fallback
+ * without the user explicitly requesting it.
+ *
+ * @returns `true` when the native addon is unavailable and WASM was not requested
+ */
+const isUnintentionalWasmFallback = (): boolean =>
+  process.env['TTF2WOFF2_VERSION']?.toLowerCase() !== 'wasm' &&
+  loadNativeWoff2Converter() === null
 
 try {
   const inputBuffer = await fs.promises.readFile(payload.inputPath)
 
   for (const output of outputs) {
-    parentPort.postMessage({ status: { format: output.format } })
+    sendToParent({ status: { format: output.format } })
 
     try {
       if (output.format === 'woff') {
@@ -56,11 +62,17 @@ try {
         )
       }
 
-      parentPort.postMessage({
-        result: { format: output.format, success: true },
+      sendToParent({
+        result: {
+          format: output.format,
+          success: true,
+          ...(output.format === 'woff2' && isUnintentionalWasmFallback()
+            ? { usedWasmFallback: true }
+            : {}),
+        },
       })
     } catch (err) {
-      parentPort.postMessage({
+      sendToParent({
         result: {
           format: output.format,
           success: false,
@@ -70,7 +82,7 @@ try {
     }
   }
 } catch (err) {
-  parentPort.postMessage({
+  sendToParent({
     results: outputs.map(output => ({
       format: output.format,
       success: false,
@@ -78,3 +90,5 @@ try {
     })),
   })
 }
+
+process.disconnect?.()

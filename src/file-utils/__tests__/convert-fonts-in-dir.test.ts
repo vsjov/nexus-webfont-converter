@@ -13,7 +13,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { convertFontsInDir } from '../convert-fonts-in-dir.js'
 
 // Types
-import type { Worker as WorkerType } from 'node:worker_threads'
+import type { ChildProcess } from 'node:child_process'
 
 // Mocks
 // -----------------------------------------------------------------------------
@@ -32,6 +32,7 @@ const { workerFactory } = vi.hoisted(() => {
                 format: 'woff' | 'woff2'
                 success: boolean
                 error?: string
+                usedWasmFallback?: boolean
               }
             }
           | {
@@ -58,7 +59,7 @@ const { workerFactory } = vi.hoisted(() => {
       },
     },
   ) =>
-    function WorkerMock() {
+    function forkMock() {
       const handlers: Record<string, (arg: unknown) => void> = {}
       const events = Array.isArray(workerEvents) ? workerEvents : [workerEvents]
 
@@ -72,30 +73,49 @@ const { workerFactory } = vi.hoisted(() => {
         on: (_event: string, handler: (arg: unknown) => void) => {
           handlers[_event] = handler
         },
-      } as unknown as WorkerType
+      } as unknown as ChildProcess
     }
 
   return { workerFactory }
 })
 
-vi.mock('node:worker_threads', async importOriginal => {
-  const actual = await importOriginal<typeof import('node:worker_threads')>()
+vi.mock('node:child_process', async importOriginal => {
+  const actual = await importOriginal<typeof import('node:child_process')>()
 
   return {
     ...actual,
-    Worker: vi.fn().mockImplementation(workerFactory()),
+    fork: vi.fn().mockImplementation(workerFactory()),
   }
 })
 
-// Re-import the mocked module to access the mock constructor
-const { Worker } = await import('node:worker_threads')
+// Re-import the mocked module to access the mock function
+const { fork } = await import('node:child_process')
+
+// Helpers
+// -----------------------------------------------------------------------------
+/**
+ * Parses the JSON task payload passed to a mocked fork call.
+ *
+ * @param callIndex - Zero-based fork call index
+ * @returns Parsed conversion task payload
+ */
+const getForkPayload = (
+  callIndex = 0,
+): {
+  inputPath: string
+  outputs: Array<{ outputPath: string; format: 'woff' | 'woff2' }>
+} => {
+  const args = vi.mocked(fork).mock.calls[callIndex][1] as string[]
+
+  return JSON.parse(args[0])
+}
 
 // Tests
 // -----------------------------------------------------------------------------
 describe('Expect convertFontsInDir', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(Worker).mockImplementation(workerFactory())
+    vi.mocked(fork).mockImplementation(workerFactory())
   })
 
   afterEach(() => {
@@ -111,18 +131,18 @@ describe('Expect convertFontsInDir', () => {
 
       await convertFontsInDir('/fonts/dm-sans')
 
-      // 2 source fonts = 2 worker invocations, each with both output formats
-      expect(Worker).toHaveBeenCalledTimes(2)
-      expect(Worker).toHaveBeenCalledWith(
+      // 2 source fonts = 2 child process invocations, each with both output formats
+      expect(fork).toHaveBeenCalledTimes(2)
+      expect(fork).toHaveBeenCalledWith(
         expect.any(URL),
-        expect.objectContaining({
-          workerData: expect.objectContaining({
-            outputs: expect.arrayContaining([
-              expect.objectContaining({ format: 'woff' }),
-              expect.objectContaining({ format: 'woff2' }),
-            ]),
-          }),
-        }),
+        [expect.any(String)],
+        expect.any(Object),
+      )
+      expect(getForkPayload().outputs).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ format: 'woff' }),
+          expect.objectContaining({ format: 'woff2' }),
+        ]),
       )
     })
   })
@@ -135,16 +155,10 @@ describe('Expect convertFontsInDir', () => {
 
       await convertFontsInDir('/fonts/dm-sans', { formats: ['woff2'] })
 
-      expect(Worker).toHaveBeenCalledTimes(1)
-
-      expect(Worker).toHaveBeenCalledWith(
-        expect.any(URL),
-        expect.objectContaining({
-          workerData: expect.objectContaining({
-            outputs: [expect.objectContaining({ format: 'woff2' })],
-          }),
-        }),
-      )
+      expect(fork).toHaveBeenCalledTimes(1)
+      expect(getForkPayload().outputs).toEqual([
+        expect.objectContaining({ format: 'woff2' }),
+      ])
     })
 
     it('when formats option is set to woff only', async () => {
@@ -154,16 +168,10 @@ describe('Expect convertFontsInDir', () => {
 
       await convertFontsInDir('/fonts/dm-sans', { formats: ['woff'] })
 
-      expect(Worker).toHaveBeenCalledTimes(1)
-
-      expect(Worker).toHaveBeenCalledWith(
-        expect.any(URL),
-        expect.objectContaining({
-          workerData: expect.objectContaining({
-            outputs: [expect.objectContaining({ format: 'woff' })],
-          }),
-        }),
-      )
+      expect(fork).toHaveBeenCalledTimes(1)
+      expect(getForkPayload().outputs).toEqual([
+        expect.objectContaining({ format: 'woff' }),
+      ])
     })
   })
 
@@ -178,8 +186,8 @@ describe('Expect convertFontsInDir', () => {
 
       await convertFontsInDir('/fonts/dm-sans', { formats: ['woff2'] })
 
-      // 2 font files × 1 format = 2 workers
-      expect(Worker).toHaveBeenCalledTimes(2)
+      // 2 font files × 1 format = 2 child processes
+      expect(fork).toHaveBeenCalledTimes(2)
     })
   })
 
@@ -193,7 +201,7 @@ describe('Expect convertFontsInDir', () => {
       })
 
       expect(readdirSpy).not.toHaveBeenCalled()
-      expect(Worker).toHaveBeenCalledTimes(1)
+      expect(fork).toHaveBeenCalledTimes(1)
     })
   })
 
@@ -208,7 +216,7 @@ describe('Expect convertFontsInDir', () => {
       const onWorkerStatus = vi.fn()
       const onWorkerDone = vi.fn()
 
-      vi.mocked(Worker).mockImplementation(
+      vi.mocked(fork).mockImplementation(
         workerFactory([
           {
             event: 'message',
@@ -266,20 +274,11 @@ describe('Expect convertFontsInDir', () => {
 
       await convertFontsInDir('/fonts/dm-sans', { formats: ['woff2'] })
 
-      expect(Worker).toHaveBeenCalledWith(
-        expect.any(URL),
+      expect(getForkPayload().outputs).toEqual([
         expect.objectContaining({
-          workerData: expect.objectContaining({
-            outputs: [
-              expect.objectContaining({
-                outputPath: expect.stringContaining(
-                  'dm-sans-bold-italic.woff2',
-                ),
-              }),
-            ],
-          }),
+          outputPath: expect.stringContaining('dm-sans-bold-italic.woff2'),
         }),
-      )
+      ])
     })
   })
 
@@ -294,17 +293,14 @@ describe('Expect convertFontsInDir', () => {
         formats: ['woff2'],
       })
 
-      expect(Worker).toHaveBeenCalledWith(
-        expect.any(URL),
+      expect(getForkPayload()).toEqual(
         expect.objectContaining({
-          workerData: expect.objectContaining({
-            inputPath: '/fonts/dm-sans/DMSans-Regular.ttf',
-            outputs: [
-              expect.objectContaining({
-                outputPath: '/output/dm-sans/dm-sans-regular.woff2',
-              }),
-            ],
-          }),
+          inputPath: '/fonts/dm-sans/DMSans-Regular.ttf',
+          outputs: [
+            expect.objectContaining({
+              outputPath: '/output/dm-sans/dm-sans-regular.woff2',
+            }),
+          ],
         }),
       )
     })
@@ -319,7 +315,7 @@ describe('Expect convertFontsInDir', () => {
 
       await convertFontsInDir('/fonts/empty')
 
-      expect(Worker).not.toHaveBeenCalled()
+      expect(fork).not.toHaveBeenCalled()
     })
 
     it('when a directory name has a supported font extension', async () => {
@@ -332,7 +328,7 @@ describe('Expect convertFontsInDir', () => {
 
       await convertFontsInDir('/fonts/empty')
 
-      expect(Worker).not.toHaveBeenCalled()
+      expect(fork).not.toHaveBeenCalled()
     })
   })
 
@@ -343,7 +339,7 @@ describe('Expect convertFontsInDir', () => {
       ] as never)
       const onWarn = vi.fn()
 
-      vi.mocked(Worker).mockImplementation(
+      vi.mocked(fork).mockImplementation(
         workerFactory({
           event: 'message',
           value: {
@@ -373,7 +369,7 @@ describe('Expect convertFontsInDir', () => {
       ] as never)
       const onWarn = vi.fn()
 
-      vi.mocked(Worker).mockImplementation(
+      vi.mocked(fork).mockImplementation(
         workerFactory({ event: 'exit', value: 1 }),
       )
 
@@ -385,6 +381,72 @@ describe('Expect convertFontsInDir', () => {
         expect.stringContaining(
           'Worker exited before sending a conversion result with code 1',
         ),
+      )
+    })
+
+    it('when a worker exits after a partial success', async () => {
+      vi.spyOn(fs, 'readdirSync').mockReturnValue([
+        'DMSans-Regular.ttf',
+      ] as never)
+      const onProgress = vi.fn()
+      const onWarn = vi.fn()
+
+      vi.mocked(fork).mockImplementation(
+        workerFactory([
+          {
+            event: 'message',
+            value: {
+              result: {
+                format: 'woff',
+                success: true,
+              },
+            },
+          },
+          { event: 'exit', value: 1 },
+        ]),
+      )
+
+      await expect(
+        convertFontsInDir('/fonts/dm-sans', {
+          formats: ['woff', 'woff2'],
+          onProgress,
+          onWarn,
+        }),
+      ).rejects.toThrow('1 font conversion failed.')
+
+      // The recorded WOFF success is preserved and not re-reported as failed
+      expect(onProgress).toHaveBeenCalledWith(
+        expect.stringContaining('dm-sans-regular.woff'),
+      )
+      expect(onWarn).toHaveBeenCalledTimes(1)
+      expect(onWarn).toHaveBeenCalledWith(expect.stringContaining('WOFF2'))
+    })
+  })
+
+  describe('to warn about the WASM fallback', () => {
+    it('when a WOFF2 result reports usedWasmFallback', async () => {
+      vi.spyOn(fs, 'readdirSync').mockReturnValue([
+        'DMSans-Regular.ttf',
+      ] as never)
+      const onWarn = vi.fn()
+
+      vi.mocked(fork).mockImplementation(
+        workerFactory({
+          event: 'message',
+          value: {
+            result: {
+              format: 'woff2',
+              success: true,
+              usedWasmFallback: true,
+            },
+          },
+        }),
+      )
+
+      await convertFontsInDir('/fonts/dm-sans', { formats: ['woff2'], onWarn })
+
+      expect(onWarn).toHaveBeenCalledWith(
+        expect.stringContaining('WASM fallback'),
       )
     })
   })
@@ -399,18 +461,15 @@ describe('Expect convertFontsInDir', () => {
 
       await convertFontsInDir('/fonts/foo', { formats: ['woff2'], onWarn })
 
-      expect(Worker).toHaveBeenCalledTimes(1)
-      expect(Worker).toHaveBeenCalledWith(
-        expect.any(URL),
+      expect(fork).toHaveBeenCalledTimes(1)
+      expect(getForkPayload()).toEqual(
         expect.objectContaining({
-          workerData: expect.objectContaining({
-            inputPath: '/fonts/foo/Foo-Bold.ttf',
-            outputs: [
-              expect.objectContaining({
-                outputPath: expect.stringContaining('foo-bold.woff2'),
-              }),
-            ],
-          }),
+          inputPath: '/fonts/foo/Foo-Bold.ttf',
+          outputs: [
+            expect.objectContaining({
+              outputPath: expect.stringContaining('foo-bold.woff2'),
+            }),
+          ],
         }),
       )
       expect(onWarn).toHaveBeenCalledWith(

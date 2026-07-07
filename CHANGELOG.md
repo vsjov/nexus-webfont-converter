@@ -36,6 +36,14 @@ adheres to _[Semantic Versioning][semver]._
   remains visibly active for large fonts.
 - Show live worker-slot status rows alongside the overall progress bar during
   font conversion.
+- Run font conversions in forked child processes instead of worker threads so
+  every parallel WOFF2 conversion can load the native `ttf2woff2` addon (the
+  addon is not context-aware and loads in only one thread per process; all
+  other threads silently fell back to the ~2.4x slower WASM converter).
+- Warn when WOFF2 conversion falls back to the slower WASM converter because
+  the native addon could not be loaded.
+- Preserve already-completed conversion results when a conversion process
+  crashes mid-task instead of re-reporting them as failures.
 
 
 ## [1.1.0]

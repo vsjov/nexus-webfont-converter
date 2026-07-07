@@ -1,10 +1,10 @@
 // Imports
 // -----------------------------------------------------------------------------
 // NodeJS
+import { fork } from 'node:child_process'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { Worker } from 'node:worker_threads'
 import { URL } from 'node:url'
 
 // External
@@ -47,6 +47,7 @@ type ConversionTaskResult = {
   format: OutputFormat
   success: boolean
   error?: string
+  usedWasmFallback?: boolean
 }
 
 type ConversionOutput = {
@@ -121,7 +122,11 @@ const findSourceFontFiles = (dirPath: string): string[] =>
     .map(entry => getRelativeEntryPath(dirPath, entry))
 
 /**
- * Converts one source font to one or more output formats in a worker thread.
+ * Converts one source font to one or more output formats in a forked child
+ * process. Child processes are used instead of worker threads because the
+ * native ttf2woff2 addon can be loaded by only one thread per process; a
+ * process per conversion keeps every parallel WOFF2 conversion on the fast
+ * native path.
  *
  * @param task - Conversion task metadata and callbacks
  * @param slot - Zero-based worker pool slot index
@@ -134,14 +139,16 @@ const runTask = (
   new Promise(resolve => {
     let isSettled = false
     const results: ConversionTaskResult[] = []
-    const worker = new Worker(
+    const worker = fork(
       new URL('./utils/font-conversion-worker.js', import.meta.url),
-      {
-        execArgv: process.execArgv.filter(arg => arg !== '--input-type=module'),
-        workerData: {
+      [
+        JSON.stringify({
           inputPath: task.inputPath,
           outputs: task.outputs,
-        },
+        }),
+      ],
+      {
+        execArgv: process.execArgv.filter(arg => arg !== '--input-type=module'),
       },
     )
 
@@ -185,6 +192,19 @@ const runTask = (
       }
     }
 
+    const settleWithRemainingFailures = (buildError: () => string) => {
+      const failures = task.outputs
+        .filter(output => !results.some(r => r.format === output.format))
+        .map(output => ({
+          format: output.format,
+          success: false,
+          error: buildError(),
+        }))
+
+      for (const failure of failures) reportResult(failure)
+      settle([...results, ...failures], false)
+    }
+
     worker.on('message', (msg: WorkerMessage) => {
       if ('status' in msg) {
         const label = `Converting ${pc.blue(task.sourceName)} to ${msg.status.format.toUpperCase()}`
@@ -206,24 +226,15 @@ const runTask = (
     })
 
     worker.on('error', (err: Error) => {
-      settle(
-        task.outputs.map(output => ({
-          format: output.format,
-          success: false,
-          error: `Worker error: ${err.message}`,
-        })),
-      )
+      settleWithRemainingFailures(() => `Worker error: ${err.message}`)
     })
 
-    worker.on('exit', (code: number) => {
+    worker.on('exit', (code: number | null) => {
       if (isSettled) return
 
-      settle(
-        task.outputs.map(output => ({
-          format: output.format,
-          success: false,
-          error: `Worker exited before sending a conversion result with code ${code}`,
-        })),
+      settleWithRemainingFailures(
+        () =>
+          `Worker exited before sending a conversion result with code ${code ?? 'unknown'}`,
       )
     })
   })
@@ -376,10 +387,12 @@ const groupCandidatesBySource = (
 // -----------------------------------------------------------------------------
 /**
  * Recursively scans `dirPath` for all `*.ttf` and `*.otf` files and converts
- * them to the requested web font formats using a pool of worker threads for
- * true CPU parallelism. Each output file is placed alongside the source file
- * by default, or inside `options.outputDir` when provided (preserving the
- * relative sub-directory structure).
+ * them to the requested web font formats using a pool of forked child
+ * processes for true CPU parallelism. Child processes (rather than worker
+ * threads) let every parallel conversion load the native ttf2woff2 addon.
+ * Each output file is placed alongside the source file by default, or inside
+ * `options.outputDir` when provided (preserving the relative sub-directory
+ * structure).
  *
  * @param dirPath - Directory to scan for source font files
  * @param options - Optional configuration
@@ -449,6 +462,12 @@ export const convertFontsInDir = async (
   )
   const results = await runWithPool(tasks, os.availableParallelism())
   const failureCount = results.filter(result => !result.success).length
+
+  if (results.some(result => result.usedWasmFallback)) {
+    onWarn?.(
+      'WOFF2 conversion used the slower WASM fallback because the native ttf2woff2 addon could not be loaded.',
+    )
+  }
 
   if (failureCount > 0) {
     throw new Error(

@@ -25,8 +25,10 @@ After that, the `wfc` command will be available in your terminal. Run `wfc
 ## What it does
 Given a directory of **TTF** or **OTF** source fonts, the converter:
 
-1. **Converts** each font file to WOFF and WOFF2 formats using worker threads
-   (one worker per source font, up to the available CPU parallelism) - fonts are
+1. **Converts** each font file to WOFF and WOFF2 formats using forked child
+   processes (one process per source font, up to the available CPU
+   parallelism) so every parallel conversion can use the fast native
+   ttf2woff2 addon - fonts are
    processed in parallel and progress is logged in real-time as each output
    completes
 2. **Normalizes** output filenames to lowercase hyphenated form
@@ -45,7 +47,7 @@ The pipeline runs:
 ```
 clean output
   -> convert fonts (WOFF + WOFF2) + copy licenses  [parallel]
-       font conversion uses worker threads up to available CPU parallelism
+       font conversion uses child processes up to available CPU parallelism
        progress is logged in real-time as each output completes
   -> generate SCSS
   -> compile CSS
@@ -187,6 +189,18 @@ variants default to `normal`.
 > conventions.  Unusual naming patterns may not be detected correctly. Always
 > review the generated `[font-name].html` and `[font-name].scss` before
 > deploying.
+
+## WOFF2 performance
+
+WOFF2 compression is CPU-intensive, especially for fonts with extended
+character sets such as Nerd Fonts. The converter prefers the native ttf2woff2
+addon, which is roughly 2.4x faster than the WASM fallback (measured 8.9s vs
+21.3s for a 2.3 MB Nerd Font). Conversions run in child processes so every
+parallel conversion can load the native addon. If the native addon cannot be
+loaded (for example when the addon build failed during install), the converter
+falls back to WASM and reports a warning in the conversion summary. Set
+`TTF2WOFF2_VERSION=native` or `TTF2WOFF2_VERSION=wasm` to force a specific
+converter.
 
 ## OTF support
 
