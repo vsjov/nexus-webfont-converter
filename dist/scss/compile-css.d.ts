@@ -4,6 +4,7 @@
  * extension.
  *
  * @param outputDir - The directory containing generated `.scss` files.
+ * @returns Stream that emits `end` on success or `error` on compilation failure
  */
-export declare const compileCssFiles: (outputDir: string) => any;
+export declare const compileCssFiles: (outputDir: string) => NodeJS.ReadWriteStream;
 //# sourceMappingURL=compile-css.d.ts.map

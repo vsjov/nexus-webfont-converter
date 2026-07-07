@@ -44,6 +44,10 @@ describe('Expect expandTilde', () => {
       expect(expandTilde('/some/~path')).toBe('/some/~path')
     })
 
+    it('when path starts with a different user home shorthand', () => {
+      expect(expandTilde('~alice/fonts')).toBe('~alice/fonts')
+    })
+
     it('when path is empty', () => {
       expect(expandTilde('')).toBe('')
     })

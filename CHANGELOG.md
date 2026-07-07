@@ -11,6 +11,13 @@ adheres to _[Semantic Versioning][semver]._
 
 ### Fixes
 
+- Make font conversion failures warn clearly and fail the command.
+- Prevent conversion tasks from hanging when a worker exits without a result.
+- Propagate SCSS compilation errors through CLI and pipeline streams.
+- Deduplicate colliding font conversion outputs and generated SCSS entries.
+- Preserve `~user` paths instead of expanding them under the current home.
+- Ignore directory entries that happen to use a font-file extension.
+- Count only font-bearing directories in pipeline progress totals.
 
 
 ## [1.1.0]

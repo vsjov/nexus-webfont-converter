@@ -18,11 +18,21 @@ import type { Worker as WorkerType } from 'node:worker_threads'
 // Mocks
 // -----------------------------------------------------------------------------
 const { workerFactory } = vi.hoisted(() => {
-  const workerFactory = (message: { success: boolean; error?: string }) =>
+  type WorkerEvent =
+    | { event: 'message'; value: { success: boolean; error?: string } }
+    | { event: 'error'; value: Error }
+    | { event: 'exit'; value: number }
+
+  const workerFactory = (
+    workerEvent: WorkerEvent = {
+      event: 'message',
+      value: { success: true },
+    },
+  ) =>
     function WorkerMock() {
       const handlers: Record<string, (arg: unknown) => void> = {}
 
-      setImmediate(() => handlers['message']?.(message))
+      setImmediate(() => handlers[workerEvent.event]?.(workerEvent.value))
 
       return {
         on: (_event: string, handler: (arg: unknown) => void) => {
@@ -39,7 +49,7 @@ vi.mock('node:worker_threads', async importOriginal => {
 
   return {
     ...actual,
-    Worker: vi.fn().mockImplementation(workerFactory({ success: true })),
+    Worker: vi.fn().mockImplementation(workerFactory()),
   }
 })
 
@@ -51,7 +61,7 @@ const { Worker } = await import('node:worker_threads')
 describe('Expect convertFontsInDir', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(Worker).mockImplementation(workerFactory({ success: true }))
+    vi.mocked(Worker).mockImplementation(workerFactory())
   })
 
   afterEach(() => {
@@ -177,6 +187,19 @@ describe('Expect convertFontsInDir', () => {
 
       expect(Worker).not.toHaveBeenCalled()
     })
+
+    it('when a directory name has a supported font extension', async () => {
+      vi.spyOn(fs, 'readdirSync').mockReturnValue([
+        {
+          name: 'DMSans-Regular.ttf',
+          isFile: () => false,
+        },
+      ] as never)
+
+      await convertFontsInDir('/fonts/empty')
+
+      expect(Worker).not.toHaveBeenCalled()
+    })
   })
 
   describe('to handle conversion errors gracefully', () => {
@@ -184,14 +207,69 @@ describe('Expect convertFontsInDir', () => {
       vi.spyOn(fs, 'readdirSync').mockReturnValue([
         'DMSans-Regular.ttf',
       ] as never)
+      const onWarn = vi.fn()
 
       vi.mocked(Worker).mockImplementation(
-        workerFactory({ success: false, error: 'conversion failed' }),
+        workerFactory({
+          event: 'message',
+          value: { success: false, error: 'conversion failed' },
+        }),
       )
 
       await expect(
-        convertFontsInDir('/fonts/dm-sans', { formats: ['woff'] }),
-      ).resolves.toBeUndefined()
+        convertFontsInDir('/fonts/dm-sans', { formats: ['woff'], onWarn }),
+      ).rejects.toThrow('1 font conversion failed.')
+
+      expect(onWarn).toHaveBeenCalledWith(
+        expect.stringContaining('conversion failed'),
+      )
+    })
+
+    it('when a worker exits before sending a result', async () => {
+      vi.spyOn(fs, 'readdirSync').mockReturnValue([
+        'DMSans-Regular.ttf',
+      ] as never)
+      const onWarn = vi.fn()
+
+      vi.mocked(Worker).mockImplementation(
+        workerFactory({ event: 'exit', value: 1 }),
+      )
+
+      await expect(
+        convertFontsInDir('/fonts/dm-sans', { formats: ['woff'], onWarn }),
+      ).rejects.toThrow('1 font conversion failed.')
+
+      expect(onWarn).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Worker exited before sending a conversion result with code 1',
+        ),
+      )
+    })
+  })
+
+  describe('to avoid output collisions', () => {
+    it('when multiple source fonts normalize to the same output path', async () => {
+      vi.spyOn(fs, 'readdirSync').mockReturnValue([
+        'Foo-Bold.otf',
+        'Foo-Bold.ttf',
+      ] as never)
+      const onWarn = vi.fn()
+
+      await convertFontsInDir('/fonts/foo', { formats: ['woff2'], onWarn })
+
+      expect(Worker).toHaveBeenCalledTimes(1)
+      expect(Worker).toHaveBeenCalledWith(
+        expect.any(URL),
+        expect.objectContaining({
+          workerData: expect.objectContaining({
+            inputPath: '/fonts/foo/Foo-Bold.ttf',
+            outputPath: expect.stringContaining('foo-bold.woff2'),
+          }),
+        }),
+      )
+      expect(onWarn).toHaveBeenCalledWith(
+        expect.stringContaining('Foo-Bold.otf'),
+      )
     })
   })
 })

@@ -49,12 +49,23 @@ ${pc.bold('Examples:')}
 `;
 // Helpers
 // -----------------------------------------------------------------------------
+/**
+ * Prints an error message and exits the process with a non-zero status.
+ *
+ * @param message - User-facing error message
+ * @throws This function exits the process and does not return
+ */
 function exitWithError(message) {
     console.error(`${pc.red('Error:')} ${message}`);
     process.exit(1);
 }
 // Main
 // -----------------------------------------------------------------------------
+/**
+ * Parses CLI arguments and runs either conversion or maintenance commands.
+ *
+ * @returns Resolves after the requested command completes
+ */
 const main = async () => {
     const { values } = parseArgs({
         options: {
@@ -88,6 +99,9 @@ const main = async () => {
     const resolvedOut = path.resolve(expandTilde(outArg));
     // Maintenance commands - only --out is needed
     if (isMaintenanceMode) {
+        if (values.in) {
+            process.stderr.write(`${pc.yellow('Notice:')} --in is ignored when using maintenance flags.\n`);
+        }
         if (!fs.existsSync(resolvedOut) ||
             !fs.statSync(resolvedOut).isDirectory()) {
             exitWithError(`Output directory does not exist: ${pc.blue(resolvedOut)}`);
@@ -130,6 +144,6 @@ const main = async () => {
     await runPipeline(resolvedIn, resolvedOut);
 };
 main().catch((err) => {
-    exitWithError(err.message);
+    exitWithError(err instanceof Error ? err.message : String(err));
 });
 //# sourceMappingURL=cli.js.map

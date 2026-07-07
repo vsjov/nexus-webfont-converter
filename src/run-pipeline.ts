@@ -26,25 +26,66 @@ import createProgress from './utils/progress.js'
 
 // Helpers
 // -----------------------------------------------------------------------------
+/**
+ * Counts source font files under a directory.
+ *
+ * @param dirPath - Directory to scan recursively
+ * @returns Number of source font files
+ */
 const countFontFiles = (dirPath: string): number =>
   fs
-    .readdirSync(dirPath, { recursive: true, encoding: 'utf-8' })
-    .filter(entry =>
-      SOURCE_EXTENSIONS.includes(path.extname(entry).toLowerCase()),
+    .readdirSync(dirPath, { recursive: true, withFileTypes: true })
+    .filter(
+      entry =>
+        entry.isFile() &&
+        SOURCE_EXTENSIONS.includes(path.extname(entry.name).toLowerCase()),
     ).length
 
+/**
+ * Counts license files under a directory.
+ *
+ * @param dirPath - Directory to scan recursively
+ * @returns Number of license files
+ */
 const countLicenseFiles = (dirPath: string): number =>
   fs
-    .readdirSync(dirPath, { recursive: true, encoding: 'utf-8' })
+    .readdirSync(dirPath, { recursive: true, withFileTypes: true })
     .filter(entry => {
-      if (path.basename(entry) === '.gitkeep') return false
-      const ext = path.extname(entry).toLowerCase()
+      if (!entry.isFile() || entry.name === '.gitkeep') return false
 
-      return (
-        LICENSE_EXTENSIONS.includes(ext) &&
-        fs.statSync(path.join(dirPath, entry)).isFile()
-      )
+      return LICENSE_EXTENSIONS.includes(path.extname(entry.name).toLowerCase())
     }).length
+
+/**
+ * Checks whether a directory contains source font files directly inside it.
+ *
+ * @param dirPath - Directory to scan
+ * @returns `true` when direct child font files exist
+ */
+const hasDirectFontFiles = (dirPath: string): boolean =>
+  fs
+    .readdirSync(dirPath, { withFileTypes: true })
+    .some(
+      entry =>
+        entry.isFile() &&
+        SOURCE_EXTENSIONS.includes(path.extname(entry.name).toLowerCase()),
+    )
+
+/**
+ * Counts directories that will produce SCSS and HTML progress ticks.
+ *
+ * @param inputDir - Root input directory
+ * @returns Number of font-generation directories
+ */
+const countFontGenerationDirs = (inputDir: string): number => {
+  const subdirectories = getSubdirectories(inputDir)
+
+  if (subdirectories.length === 0) return hasDirectFontFiles(inputDir) ? 1 : 0
+
+  return subdirectories.filter(dirName =>
+    hasDirectFontFiles(path.join(inputDir, dirName)),
+  ).length
+}
 
 const computeTotalSteps = (
   inputDir: string,
@@ -52,7 +93,7 @@ const computeTotalSteps = (
 ): number => {
   const fontCount = countFontFiles(inputDir)
   const licenseCount = countLicenseFiles(inputDir)
-  const fontDirCount = Math.max(getSubdirectories(inputDir).length, 1)
+  const fontDirCount = countFontGenerationDirs(inputDir)
 
   return (
     1 + // clean

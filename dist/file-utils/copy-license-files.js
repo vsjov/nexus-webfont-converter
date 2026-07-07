@@ -11,7 +11,7 @@ import { LICENSE_EXTENSIONS } from '../config/constants.js';
 // -----------------------------------------------------------------------------
 /**
  * Copies license files (`.txt`, `.md`, `.pdf`, or files with no extension) from
- * `inputDir` and its immediate sub-directories to the corresponding paths under
+ * `inputDir` and its nested sub-directories to the corresponding paths under
  * `outputDir`, preserving the relative directory structure.
  *
  * @param inputDir - Root input directory (e.g. `build/in/`)

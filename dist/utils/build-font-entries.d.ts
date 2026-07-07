@@ -9,7 +9,11 @@ export type FontEntry = {
  * and inferred style. Results are sorted ascending by weight, then normal
  * before italic within the same weight.
  *
+ * Duplicate entries with the same normalized base, weight, and style are
+ * removed so generated SCSS does not contain repeated `@include` lines.
+ *
  * @param fontFiles - Array of font filenames (e.g. `['DMSans-Bold.ttf', 'DMSans-Italic.otf']`)
+ * @returns Sorted and deduplicated font entries
  */
 export declare const buildFontEntries: (fontFiles: string[]) => FontEntry[];
 export default buildFontEntries;

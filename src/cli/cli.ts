@@ -60,6 +60,12 @@ ${pc.bold('Examples:')}
 
 // Helpers
 // -----------------------------------------------------------------------------
+/**
+ * Prints an error message and exits the process with a non-zero status.
+ *
+ * @param message - User-facing error message
+ * @throws This function exits the process and does not return
+ */
 function exitWithError(message: string): never {
   console.error(`${pc.red('Error:')} ${message}`)
   process.exit(1)
@@ -67,6 +73,11 @@ function exitWithError(message: string): never {
 
 // Main
 // -----------------------------------------------------------------------------
+/**
+ * Parses CLI arguments and runs either conversion or maintenance commands.
+ *
+ * @returns Resolves after the requested command completes
+ */
 const main = async () => {
   const { values } = parseArgs({
     options: {
@@ -108,6 +119,12 @@ const main = async () => {
 
   // Maintenance commands - only --out is needed
   if (isMaintenanceMode) {
+    if (values.in) {
+      process.stderr.write(
+        `${pc.yellow('Notice:')} --in is ignored when using maintenance flags.\n`,
+      )
+    }
+
     if (
       !fs.existsSync(resolvedOut) ||
       !fs.statSync(resolvedOut).isDirectory()
@@ -166,5 +183,5 @@ const main = async () => {
 }
 
 main().catch((err: unknown) => {
-  exitWithError((err as Error).message)
+  exitWithError(err instanceof Error ? err.message : String(err))
 })

@@ -13,7 +13,58 @@ import { SOURCE_EXTENSIONS } from '../config/constants.js';
 import { toHyphenated } from '../utils/to-hyphenated.js';
 // Helpers
 // -----------------------------------------------------------------------------
+/**
+ * Converts a recursive dirent into a path relative to the scanned root.
+ *
+ * @param rootDir - Directory passed to `readdirSync`
+ * @param entry - Dirent returned from recursive `readdirSync`
+ * @returns Relative path for the entry
+ */
+const getRelativeDirentPath = (rootDir, entry) => {
+    const parentPath = entry.parentPath ?? entry.path ?? rootDir;
+    return path.relative(rootDir, path.join(parentPath, entry.name));
+};
+/**
+ * Checks whether a recursive directory entry is a supported source font file.
+ *
+ * @param entry - Recursive directory entry to inspect
+ * @returns `true` when the entry is a source font file
+ */
+const isSourceFontEntry = (entry) => {
+    if (typeof entry === 'string') {
+        return SOURCE_EXTENSIONS.includes(path.extname(entry).toLowerCase());
+    }
+    return (entry.isFile() &&
+        SOURCE_EXTENSIONS.includes(path.extname(entry.name).toLowerCase()));
+};
+/**
+ * Converts a recursive directory entry into a relative path.
+ *
+ * @param rootDir - Directory passed to `readdirSync`
+ * @param entry - Recursive directory entry to convert
+ * @returns Relative source font path
+ */
+const getRelativeEntryPath = (rootDir, entry) => typeof entry === 'string' ? entry : getRelativeDirentPath(rootDir, entry);
+/**
+ * Finds source font files under a directory.
+ *
+ * @param dirPath - Directory to scan recursively
+ * @returns Relative source font paths
+ */
+const findSourceFontFiles = (dirPath) => fs.readdirSync(dirPath, {
+    recursive: true,
+    withFileTypes: true,
+})
+    .filter(isSourceFontEntry)
+    .map(entry => getRelativeEntryPath(dirPath, entry));
+/**
+ * Converts one source font to one output format in a worker thread.
+ *
+ * @param task - Conversion task metadata and callbacks
+ * @returns Worker conversion result
+ */
 const runTask = (task) => new Promise(resolve => {
+    let isSettled = false;
     const worker = new Worker(new URL('./utils/font-conversion-worker.js', import.meta.url), {
         workerData: {
             inputPath: task.inputPath,
@@ -21,30 +72,93 @@ const runTask = (task) => new Promise(resolve => {
             format: task.format,
         },
     });
-    worker.on('message', (msg) => {
-        if (msg.success) {
+    const settle = (result) => {
+        if (isSettled)
+            return;
+        isSettled = true;
+        if (result.success) {
             task.onProgress?.(`Generated ${pc.green(`${task.normalizedBase}.${task.format}`)} from ${pc.blue(task.sourceName)}`);
         }
         else {
-            task.onProgress?.(`Failed to convert ${pc.blue(task.sourceName)} to ${task.format.toUpperCase()}: ${msg.error}`);
+            task.onWarn?.(`Failed to convert ${pc.blue(task.sourceName)} to ${task.format.toUpperCase()}: ${result.error}`);
         }
-        resolve();
+        resolve(result);
+    };
+    worker.on('message', (msg) => {
+        settle(msg);
     });
     worker.on('error', (err) => {
-        task.onProgress?.(`Worker error for ${pc.blue(task.sourceName)}: ${err.message}`);
-        resolve();
+        settle({ success: false, error: `Worker error: ${err.message}` });
+    });
+    worker.on('exit', (code) => {
+        if (isSettled)
+            return;
+        settle({
+            success: false,
+            error: `Worker exited before sending a conversion result with code ${code}`,
+        });
     });
 });
+/**
+ * Runs conversion tasks with bounded concurrency.
+ *
+ * @param tasks - Conversion tasks to process
+ * @param concurrency - Maximum number of concurrent worker tasks
+ * @returns Conversion results in completion order
+ */
 const runWithPool = async (tasks, concurrency) => {
     const queue = [...tasks];
+    const results = [];
     const runLoop = async () => {
         while (queue.length > 0) {
             const task = queue.shift();
             if (task)
-                await runTask(task);
+                results.push(await runTask(task));
         }
     };
     await Promise.all(Array.from({ length: Math.min(concurrency, tasks.length) }, runLoop));
+    return results;
+};
+/**
+ * Chooses a deterministic source when several tasks would write the same
+ * output file.
+ *
+ * @param tasks - Tasks that target the same output path
+ * @returns Preferred task to keep
+ */
+const selectPreferredTask = (tasks) => {
+    return [...tasks].sort((a, b) => {
+        const extA = path.extname(a.inputPath).toLowerCase();
+        const extB = path.extname(b.inputPath).toLowerCase();
+        const rankA = extA === '.ttf' ? 0 : 1;
+        const rankB = extB === '.ttf' ? 0 : 1;
+        if (rankA !== rankB)
+            return rankA - rankB;
+        return a.sourceName.localeCompare(b.sourceName);
+    })[0];
+};
+/**
+ * Removes tasks that would write to the same output path.
+ *
+ * @param tasks - Candidate conversion tasks
+ * @param onWarn - Optional warning callback for skipped duplicate outputs
+ * @returns Deduplicated conversion tasks
+ */
+const dedupeTasksByOutputPath = (tasks, onWarn) => {
+    const groups = new Map();
+    for (const task of tasks) {
+        groups.set(task.outputPath, [...(groups.get(task.outputPath) ?? []), task]);
+    }
+    return Array.from(groups.values()).map(group => {
+        if (group.length === 1)
+            return group[0];
+        const preferredTask = selectPreferredTask(group);
+        const skippedTasks = group.filter(task => task !== preferredTask);
+        for (const skippedTask of skippedTasks) {
+            onWarn?.(`Skipping ${pc.blue(skippedTask.sourceName)} because it would overwrite ${pc.green(path.basename(skippedTask.outputPath))} generated from ${pc.blue(preferredTask.sourceName)}`);
+        }
+        return preferredTask;
+    });
 };
 // Function
 // -----------------------------------------------------------------------------
@@ -67,11 +181,7 @@ const runWithPool = async (tasks, concurrency) => {
  */
 export const convertFontsInDir = async (dirPath, options = {}) => {
     const { outputDir, formats = ['woff', 'woff2'], onProgress, onWarn } = options;
-    const allEntries = fs.readdirSync(dirPath, {
-        recursive: true,
-        encoding: 'utf-8',
-    });
-    const fontFiles = allEntries.filter(entry => SOURCE_EXTENSIONS.includes(path.extname(entry).toLowerCase()));
+    const fontFiles = findSourceFontFiles(dirPath);
     if (fontFiles.length === 0) {
         onWarn?.(`No TTF or OTF files found in ${pc.blue(dirPath)}`);
         return;
@@ -90,9 +200,15 @@ export const convertFontsInDir = async (dirPath, options = {}) => {
             sourceName,
             normalizedBase,
             onProgress,
+            onWarn,
         }));
     });
-    await runWithPool(tasks, os.cpus().length);
+    const dedupedTasks = dedupeTasksByOutputPath(tasks, onWarn);
+    const results = await runWithPool(dedupedTasks, os.availableParallelism());
+    const failureCount = results.filter(result => !result.success).length;
+    if (failureCount > 0) {
+        throw new Error(`${failureCount} font conversion${failureCount === 1 ? '' : 's'} failed.`);
+    }
 };
 export default convertFontsInDir;
 //# sourceMappingURL=convert-fonts-in-dir.js.map

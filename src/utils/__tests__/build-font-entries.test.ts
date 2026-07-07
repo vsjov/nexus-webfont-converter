@@ -81,6 +81,34 @@ describe('Expect buildFontEntries', () => {
     })
   })
 
+  describe('to sort equal styles consistently', () => {
+    it('when given multiple entries with the same weight and style', () => {
+      const result = buildFontEntries([
+        'PublicSans-Regular.ttf',
+        'DMSans-Regular.ttf',
+      ])
+
+      expect(result.map(e => e.normalizedBase)).toEqual([
+        'dm-sans-regular',
+        'public-sans-regular',
+      ])
+    })
+  })
+
+  describe('to deduplicate entries', () => {
+    it('when multiple filenames normalize to the same base, weight, and style', () => {
+      const result = buildFontEntries(['DM Sans Bold.ttf', 'dm-sans-bold.ttf'])
+
+      expect(result).toEqual([
+        {
+          normalizedBase: 'dm-sans-bold',
+          weight: 700,
+          style: 'normal',
+        },
+      ])
+    })
+  })
+
   describe('to handle a complete font family', () => {
     it('when given multiple weights and styles', () => {
       const result = buildFontEntries([
