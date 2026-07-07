@@ -81,7 +81,7 @@ Included issues / PRs:
             git tag -d v[X.0.0]
             git push origin --delete v[X.0.0]
             ```
-    - [ ] Wait for both `test-and-build` and `publish-npm-package` to pass on the tag workflow. Publishing is automatic and does not require local npm authentication.
+    - [ ] Wait for `test-and-build`, `publish-npm-package`, and `create-github-release` to pass on the tag workflow. Publishing and GitHub Release creation are automatic and do not require local npm authentication.
     - [ ] Verify `nexus-webfont-converter@[X.0.0]` is available on NPM.
     - [ ] If the workflow fails before publishing, delete the tag before correcting and retagging the release branch. Never reuse a version after it has been published.
 
