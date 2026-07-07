@@ -46,6 +46,27 @@ describe('Expect parseScssEntries', () => {
         { normalizedBase: 'dm-sans-bold-italic', weight: 700, style: 'italic' },
       ])
     })
+
+    it('when content uses single quotes', () => {
+      const scss = `@include fontFace('DM Sans', 'dm-sans-regular', 400, 'normal');`
+
+      expect(parseScssEntries(scss)).toEqual([
+        { normalizedBase: 'dm-sans-regular', weight: 400, style: 'normal' },
+      ])
+    })
+
+    it('when content uses flexible whitespace', () => {
+      const scss = `@include   fontFace (
+        "DM Sans" ,
+        "dm-sans-regular" ,
+        400 ,
+        "normal"
+      ) ;`
+
+      expect(parseScssEntries(scss)).toEqual([
+        { normalizedBase: 'dm-sans-regular', weight: 400, style: 'normal' },
+      ])
+    })
   })
 
   describe('to return multiple entries', () => {

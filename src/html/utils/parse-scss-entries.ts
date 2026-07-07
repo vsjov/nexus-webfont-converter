@@ -6,16 +6,18 @@ import type { FontEntry } from '../../utils/build-font-entries.js'
 // Constants
 // -----------------------------------------------------------------------------
 const INCLUDE_RE =
-  /@include fontFace\("([^"]+)",\s*"([^"]+)",\s*(\d+),\s*"(normal|italic)"\)/g
+  /@include\s+fontFace\s*\(\s*(['"])([^'"]+)\1\s*,\s*(['"])([^'"]+)\3\s*,\s*(\d+)\s*,\s*(['"])(normal|italic)\6\s*\)\s*;?/g
 
 // Function
 // -----------------------------------------------------------------------------
 /**
- * Parses all `@include fontFace(...)` calls from generated SCSS content and
- * returns a `FontEntry` list.
+ * Parses all `@include fontFace(...)` calls from generated or hand-edited SCSS
+ * content and returns a `FontEntry` list.
  *
  * Only entries with a valid CSS `font-style` value (`normal` or `italic`) are
- * included. Entries with any other style value are silently skipped.
+ * included. Entries with any other style value are silently skipped. Single
+ * and double quotes are supported, as is flexible whitespace between
+ * arguments.
  *
  * @param scssContent - Raw SCSS string to parse
  *
@@ -32,9 +34,9 @@ export const parseScssEntries = (scssContent: string): FontEntry[] => {
 
   while ((match = re.exec(scssContent)) !== null) {
     entries.push({
-      normalizedBase: match[2],
-      weight: parseInt(match[3], 10),
-      style: match[4] as 'normal' | 'italic',
+      normalizedBase: match[4],
+      weight: parseInt(match[5], 10),
+      style: match[7] as 'normal' | 'italic',
     })
   }
 

@@ -200,6 +200,35 @@ describe('Expect removeUnusedFonts', () => {
 
       expect(parseScssEntries).not.toHaveBeenCalled()
     })
+
+    it('when the SCSS file has no parseable fontFace includes', () => {
+      vi.spyOn(fs, 'readdirSync').mockImplementation(((dirPath: string) => {
+        if (String(dirPath).endsWith('dm-sans')) {
+          return [
+            'dm-sans-regular.woff',
+            'dm-sans-regular.woff2',
+            'dm-sans.scss',
+          ] as never
+        }
+
+        return ['dm-sans'] as never
+      }) as never)
+
+      vi.spyOn(fs, 'statSync').mockReturnValue({
+        isDirectory: () => true,
+      } as never)
+      vi.spyOn(fs, 'existsSync').mockReturnValue(true)
+      vi.spyOn(fs, 'readFileSync').mockReturnValue('scss content' as never)
+      const unlinkSpy = vi
+        .spyOn(fs, 'unlinkSync')
+        .mockImplementation(() => undefined)
+
+      vi.mocked(parseScssEntries).mockReturnValue([])
+
+      removeUnusedFonts('/output')
+
+      expect(unlinkSpy).not.toHaveBeenCalled()
+    })
   })
 
   describe('to do nothing', () => {

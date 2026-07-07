@@ -1,10 +1,12 @@
 import type { FontEntry } from '../../utils/build-font-entries.js';
 /**
- * Parses all `@include fontFace(...)` calls from generated SCSS content and
- * returns a `FontEntry` list.
+ * Parses all `@include fontFace(...)` calls from generated or hand-edited SCSS
+ * content and returns a `FontEntry` list.
  *
  * Only entries with a valid CSS `font-style` value (`normal` or `italic`) are
- * included. Entries with any other style value are silently skipped.
+ * included. Entries with any other style value are silently skipped. Single
+ * and double quotes are supported, as is flexible whitespace between
+ * arguments.
  *
  * @param scssContent - Raw SCSS string to parse
  *

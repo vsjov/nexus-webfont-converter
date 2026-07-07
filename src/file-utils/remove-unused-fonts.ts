@@ -59,9 +59,16 @@ export const removeUnusedFonts = (outputDir: string): void => {
 
     const scssContent = fs.readFileSync(scssPath, 'utf-8')
 
-    const referencedBases = new Set(
-      parseScssEntries(scssContent).map(e => e.normalizedBase),
-    )
+    const entries = parseScssEntries(scssContent)
+
+    if (entries.length === 0) {
+      logger.warn(
+        `No parseable fontFace includes found in ${pc.blue(scssPath)} - skipping`,
+      )
+      continue
+    }
+
+    const referencedBases = new Set(entries.map(e => e.normalizedBase))
 
     const fontFiles = fs
       .readdirSync(outputFontDir)
