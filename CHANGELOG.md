@@ -7,15 +7,15 @@ adheres to _[Semantic Versioning][semver]._
 
 ## [Unreleased]
 
-### Features
-
 ### Fixes
+- fix: resolve global wfc command problems ([#12])
+
+
+[#12]: https://github.com/vsjov/nexus-webfont-converter/pull/12
 
 
 
 ## [1.1.1] (released: 2026-07-07)
-
-### Features
 
 ### Fixes
 - feat: fix numerous bugs and implement additional optimizations ([#9])
