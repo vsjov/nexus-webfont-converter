@@ -15,13 +15,20 @@
   ],
   "scripts": {
     "start": "git clean -dfx && npm ci && npm run test && npm run build",
-    "prepublishOnly": "npm run lint:fix && npm run test && npm run build",
+    "prepublishOnly": "npm run build-all",
+    "build-all": "npm run lint && npm run test && npm run test:scripts && npm run test:tools && npm run build && npm run build:tools && npm run pack:check",
     "lint": "eslint ./src",
     "lint:fix": "eslint --fix ./src",
-    "test": "vitest run",
+    "test": "vitest run src",
+    "test:scripts": "vitest run scripts --reporter=dot",
+    "test:tools": "vitest run tools/release-validator/src --reporter=dot",
     "test:watch": "vitest --watch",
     "build": "rimraf dist && tsc --build --clean && tsc -p tsconfig.lib.json && node -e \"require('fs').chmodSync('dist/cli/cli.js',0o755)\"",
+    "build:tools": "npm --prefix tools/release-validator run build",
     "build:watch": "tsc --build --clean && tsc -p tsconfig.lib.json --watch",
+    "pack:check": "npm pack --dry-run",
+    "validate:release-tag": "node ./tools/release-validator/dist/cli.js",
+    "version-update": "node ./scripts/package-version-update.js",
     "convert": "gulp --silent --gulpfile dist/gulpfile.js",
     "compile-css": "gulp compileCss --silent --gulpfile dist/gulpfile.js",
     "recompile-html": "gulp recompileHtml --silent --gulpfile dist/gulpfile.js",
@@ -83,5 +90,9 @@
     "cli"
   ],
   "license": "Apache-2.0",
-  "author": "Vladimir Jovanović <vladimir@bitersen.com>"
+  "author": "Vladimir Jovanović <vladimir@bitersen.com>",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  }
 }

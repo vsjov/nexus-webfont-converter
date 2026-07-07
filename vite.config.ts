@@ -27,7 +27,11 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     reporters: ['dot'],
-    include: ['src/**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    include: [
+      'src/**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+      'scripts/**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+      'tools/release-validator/src/**/*.test.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+    ],
     exclude: [
       ...configDefaults.exclude,
       './templates/**',

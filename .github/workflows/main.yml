@@ -2,8 +2,8 @@ name: "Lint, test and build"
 
 on:
   push:
-    branches: [ "master", "release-v**" ]
-    tags: ["v[0-9]+*"]
+    branches: [ "master", "release/**" ]
+    tags: ["v*.*.*"]
   pull_request:
     branches: [ "**" ]
 
@@ -49,11 +49,35 @@ jobs:
           cd nexus-webfont-converter
           npm test
 
+      - name: Run release script tests
+        shell: bash
+        run: |
+          cd nexus-webfont-converter
+          npm run test:scripts
+
+      - name: Run release validator tests
+        shell: bash
+        run: |
+          cd nexus-webfont-converter
+          npm run test:tools
+
       - name: Build
         shell: bash
         run: |
           cd nexus-webfont-converter
           npm run build
+
+      - name: Build release validator
+        shell: bash
+        run: |
+          cd nexus-webfont-converter
+          npm run build:tools
+
+      - name: Check package contents
+        shell: bash
+        run: |
+          cd nexus-webfont-converter
+          npm run pack:check
 
       # Check that dist/ is up to date
       # --------------------------------
@@ -74,3 +98,94 @@ jobs:
         run: |
           echo "::error::Build output differs from committed dist/. Run 'npm run build' locally and commit the changes."
           exit 1
+
+  ###########################
+  #                         #
+  #   Publish NPM package   #
+  #                         #
+  ###########################
+  publish-npm-package:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: test-and-build
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout
+      # --------
+      - name: Clone the nexus-webfont-converter repository with release history
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # hash for v6.0.2
+        with:
+          fetch-depth: 0
+          path: nexus-webfont-converter
+
+      # Install NodeJS
+      # --------------
+      - name: Install NodeJS for NPM trusted publishing
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # hash for v6.3.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+          registry-url: "https://registry.npmjs.org"
+
+      # Install dependencies
+      # --------------------
+      - name: Install nexus-webfont-converter dependencies
+        shell: bash
+        run: |
+          cd nexus-webfont-converter
+          npm ci --ignore-scripts --loglevel error
+
+      # Validate release source
+      # -----------------------
+      - name: Build release validator
+        shell: bash
+        run: |
+          cd nexus-webfont-converter
+          npm run build:tools
+
+      - name: Validate release tag and branch
+        shell: bash
+        run: |
+          cd nexus-webfont-converter
+          npm run validate:release-tag -- "$GITHUB_REF_NAME"
+
+      # Guard against duplicate versions
+      # --------------------------------
+      - name: Confirm package version is not published
+        shell: bash
+        run: |
+          cd nexus-webfont-converter
+          set +e
+          npm_view_output=$(npm view "nexus-webfont-converter@${GITHUB_REF_NAME#v}" version --registry=https://registry.npmjs.org 2>&1)
+          npm_view_status=$?
+          set -e
+
+          if [[ $npm_view_status -eq 0 ]]; then
+            echo "::error::nexus-webfont-converter@${GITHUB_REF_NAME#v} is already published."
+            exit 1
+          fi
+
+          if [[ $npm_view_output != *"E404"* ]]; then
+            echo "$npm_view_output"
+            echo "::error::Unable to confirm that the package version is unpublished."
+            exit 1
+          fi
+
+      # Build package contents
+      # ----------------------
+      - name: Build package for publish
+        shell: bash
+        run: |
+          cd nexus-webfont-converter
+          npm run build
+          npm run pack:check
+
+      # Publish
+      # -------
+      - name: Publish NPM package
+        shell: bash
+        run: |
+          cd nexus-webfont-converter
+          npm publish --ignore-scripts --access public
