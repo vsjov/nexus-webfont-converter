@@ -10,40 +10,11 @@ adheres to _[Semantic Versioning][semver]._
 ### Features
 
 ### Fixes
+- feat: fix numerous bugs and implement additional optimizations ([#9])
 
-- Make font conversion failures warn clearly and fail the command.
-- Prevent conversion tasks from hanging when a worker exits without a result.
-- Propagate SCSS compilation errors through CLI and pipeline streams.
-- Deduplicate colliding font conversion outputs and generated SCSS entries.
-- Preserve `~user` paths instead of expanding them under the current home.
-- Ignore directory entries that happen to use a font-file extension.
-- Count only font-bearing directories in pipeline progress totals.
-- Reduce conversion worker startup and source-font reads by processing all
-  requested formats for each source font in one worker.
-- Reuse the pipeline input-tree scan for conversion and license-copy steps.
-- Reuse tested converter helpers from the worker and export the full pipeline
-  API for programmatic consumers.
-- Pass Browserslist targets through Lightning CSS when compiling generated CSS.
-- Move `@types/cli-progress` out of runtime dependencies after verifying the
-  published type surface does not expose `cli-progress` types.
-- Add CLI argument-handling and pipeline orchestration coverage.
-- Document non-zero conversion failures, CFF-flavored OTF support, and the
-  programmatic `runPipeline` API.
-- Extract shared dirent/path helper utilities used by recursive scans.
-- Prefer the native `ttf2woff2` addon directly when available, avoiding the
-  package wrapper's slow WASM fallback in Node ESM environments.
-- Report conversion status and per-output completion so slow WOFF2 compression
-  remains visibly active for large fonts.
-- Show live worker-slot status rows alongside the overall progress bar during
-  font conversion.
-- Run font conversions in forked child processes instead of worker threads so
-  every parallel WOFF2 conversion can load the native `ttf2woff2` addon (the
-  addon is not context-aware and loads in only one thread per process; all
-  other threads silently fell back to the ~2.4x slower WASM converter).
-- Warn when WOFF2 conversion falls back to the slower WASM converter because
-  the native addon could not be loaded.
-- Preserve already-completed conversion results when a conversion process
-  crashes mid-task instead of re-reporting them as failures.
+
+[#9]: https://github.com/vsjov/nexus-webfont-converter/pull/9
+
 
 
 ## [1.1.0]
