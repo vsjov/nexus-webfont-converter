@@ -41,7 +41,7 @@ Included issues / PRs:
     - [ ] Commit the version changes:
         ```bash
         git add package.json npm-shrinkwrap.json
-        git commit -m "Version bump to [X.0.0]"
+        git commit -m "release: version bump to [X.0.0]"
         ```
 
 3. **Update the changelog**
@@ -76,11 +76,11 @@ Included issues / PRs:
         git tag -a v[X.0.0] -m "Release [X.0.0]"
         git push origin v[X.0.0]
         ```
-    - [ ] Optionally: If something goes bad during the CI run, revert the release by deleting the tag and pushing the change:
-        ```bash
-        git tag -d v[X.0.0]
-        git push origin --delete v[X.0.0]
-        ```
+        - optionally: If something goes bad during the CI run, revert the release by deleting the tag and pushing the change:
+            ```bash
+            git tag -d v[X.0.0]
+            git push origin --delete v[X.0.0]
+            ```
     - [ ] Wait for both `test-and-build` and `publish-npm-package` to pass on the tag workflow. Publishing is automatic and does not require local npm authentication.
     - [ ] Verify `nexus-webfont-converter@[X.0.0]` is available on NPM.
     - [ ] If the workflow fails before publishing, delete the tag before correcting and retagging the release branch. Never reuse a version after it has been published.
@@ -90,7 +90,7 @@ Included issues / PRs:
         ```bash
         npm run version-update -- minor
         git add package.json npm-shrinkwrap.json
-        git commit -m "chore: bump next development version"
+        git commit -m "release: bump next development version"
         git push
         ```
 
