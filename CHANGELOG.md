@@ -7,11 +7,15 @@ adheres to _[Semantic Versioning][semver]._
 
 ## [Unreleased]
 
+### Features
+- ci: create GitHub Releases automatically from version tags ([#13])
+
 ### Fixes
 - fix: resolve global wfc command problems ([#12])
 
 
 [#12]: https://github.com/vsjov/nexus-webfont-converter/pull/12
+[#13]: https://github.com/vsjov/nexus-webfont-converter/pull/13
 
 
 
