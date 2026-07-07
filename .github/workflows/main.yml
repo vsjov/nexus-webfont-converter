@@ -33,7 +33,7 @@ jobs:
         uses: ./nexus-webfont-converter/.github/actions/install-package
         with:
           package-name: nexus-webfont-converter
-          node-version: 24.14.0
+          node-version: 24
 
       # Lint, test, build
       # -----------------

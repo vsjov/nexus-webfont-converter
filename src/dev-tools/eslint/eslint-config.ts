@@ -109,10 +109,7 @@ export const rulesCommon: Linter.RulesRecord = {
       before: false,
       after: true,
       overrides: {
-        arrow: {
-          before: true,
-          after: true
-        }
+        arrow: 'ignore'
       }
     }
   ],

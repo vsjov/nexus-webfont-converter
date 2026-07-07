@@ -2,7 +2,6 @@
 import { relative } from 'path'
 import { defineConfig } from 'vite'
 import { configDefaults } from 'vitest/config'
-import viteTsConfigPaths from 'vite-tsconfig-paths'
 import appRootPath from 'app-root-path'
 import { _dirname } from './src/dev-tools/utils/dirname.js'
 import pkg from './package.json' with { type: 'json' }
@@ -13,19 +12,15 @@ const relativeRootPath = relative(__dirname, appRootPath.toString())
 export default defineConfig({
   cacheDir: `${relativeRootPath}/node_modules/.vite/${pkg.name}`,
 
-  plugins: [
-    viteTsConfigPaths({
-      root: relativeRootPath,
-    }),
-  ],
+  resolve: {
+    tsconfigPaths: true,
+  },
 
   // Uncomment this if you are using workers.
   // worker: {
-  //  plugins: [
-  //    viteTsConfigPaths({
-  //      root: relativeRootPath,
-  //    }),
-  //  ],
+  //   resolve: {
+  //     tsconfigPaths: true,
+  //   },
   // },
 
   test: {

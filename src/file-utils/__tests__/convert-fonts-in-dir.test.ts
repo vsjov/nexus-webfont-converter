@@ -19,7 +19,7 @@ import type { Worker as WorkerType } from 'node:worker_threads'
 // Mocks
 // -----------------------------------------------------------------------------
 const { workerFactory } = vi.hoisted(() => {
-  const workerFactory = (message: { success: boolean, error?: string }) => () => {
+  const workerFactory = (message: { success: boolean, error?: string }) => function WorkerMock() {
     const handlers: Record<string, (arg: unknown) => void> = {}
 
     setImmediate(() => handlers['message']?.(message))
@@ -51,6 +51,7 @@ const { Worker } = await import('node:worker_threads')
 // -----------------------------------------------------------------------------
 describe('Expect convertFontsInDir', () => {
   beforeEach(() => {
+    vi.clearAllMocks()
     vi.mocked(Worker).mockImplementation(workerFactory({ success: true }))
   })
 

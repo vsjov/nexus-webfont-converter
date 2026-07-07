@@ -4,7 +4,7 @@
 import fs from 'node:fs'
 
 // External
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Internal
 import { generateFontFaceScss } from '../generate-font-face-scss.js'
@@ -23,6 +23,10 @@ const { generateScssForDir } = await import('../utils/generate-scss-for-dir.js')
 // Tests
 // -----------------------------------------------------------------------------
 describe('Expect generateFontFaceScss', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   afterEach(() => {
     vi.restoreAllMocks()
   })
