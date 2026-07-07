@@ -16,10 +16,12 @@ import ttf2woff from 'ttf2woff';
  * file
  * @param outputPath - Absolute or relative path where the `.woff` file will be
  * written
+ * @param inputBuffer - Optional pre-read source font buffer
+ * @returns Resolves after the WOFF file is written
  */
-export const convertFontToWoff = async (inputPath, outputPath) => {
-    const inputBuffer = await fs.promises.readFile(inputPath);
-    const woffResult = ttf2woff(inputBuffer);
+export const convertFontToWoff = async (inputPath, outputPath, inputBuffer) => {
+    const sourceBuffer = inputBuffer ?? (await fs.promises.readFile(inputPath));
+    const woffResult = ttf2woff(sourceBuffer);
     await fs.promises.mkdir(path.dirname(outputPath), { recursive: true });
     await fs.promises.writeFile(outputPath, woffResult);
 };

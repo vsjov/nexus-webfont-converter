@@ -2,12 +2,10 @@
 // -----------------------------------------------------------------------------
 // NodeJS
 import fs from 'node:fs';
-import path from 'node:path';
 import { workerData, parentPort } from 'node:worker_threads';
-// External
-// @ts-expect-error - no type declarations available for ttf2woff
-import ttf2woff from 'ttf2woff';
-import ttf2woff2 from 'ttf2woff2';
+// Internal
+import { convertFontToWoff } from './convert-font-to-woff.js';
+import { convertFontToWoff2 } from './convert-font-to-woff2.js';
 // Worker
 // -----------------------------------------------------------------------------
 if (!parentPort)
@@ -23,14 +21,15 @@ const outputs = payload.outputs ??
         ]
         : []);
 try {
-    const inputBuffer = fs.readFileSync(payload.inputPath);
-    const results = outputs.map(output => {
+    const inputBuffer = await fs.promises.readFile(payload.inputPath);
+    const results = await Promise.all(outputs.map(async (output) => {
         try {
-            const outputBuffer = output.format === 'woff'
-                ? ttf2woff(inputBuffer)
-                : ttf2woff2(inputBuffer);
-            fs.mkdirSync(path.dirname(output.outputPath), { recursive: true });
-            fs.writeFileSync(output.outputPath, outputBuffer);
+            if (output.format === 'woff') {
+                await convertFontToWoff(payload.inputPath, output.outputPath, inputBuffer);
+            }
+            else {
+                await convertFontToWoff2(payload.inputPath, output.outputPath, inputBuffer);
+            }
             return { format: output.format, success: true };
         }
         catch (err) {
@@ -40,7 +39,7 @@ try {
                 error: err.message,
             };
         }
-    });
+    }));
     parentPort.postMessage({ results });
 }
 catch (err) {

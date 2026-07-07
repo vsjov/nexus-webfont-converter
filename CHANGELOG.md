@@ -21,6 +21,8 @@ adheres to _[Semantic Versioning][semver]._
 - Reduce conversion worker startup and source-font reads by processing all
   requested formats for each source font in one worker.
 - Reuse the pipeline input-tree scan for conversion and license-copy steps.
+- Reuse tested converter helpers from the worker and export the full pipeline
+  API for programmatic consumers.
 
 
 ## [1.1.0]
