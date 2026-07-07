@@ -10,6 +10,14 @@ adheres to _[Semantic Versioning][semver]._
 ### Features
 
 ### Fixes
+
+
+
+## [1.1.1] (released: 2026-07-07)
+
+### Features
+
+### Fixes
 - feat: fix numerous bugs and implement additional optimizations ([#9])
 
 
@@ -17,7 +25,7 @@ adheres to _[Semantic Versioning][semver]._
 
 
 
-## [1.1.0]
+## [1.1.0] (released: 2026-07-07)
 
 ### Features
 - feat: add trusted NPM release automation ([#5])
@@ -33,7 +41,7 @@ adheres to _[Semantic Versioning][semver]._
 
 
 
-## [1.0.2] (released: 2025-03-10)
+## [1.0.2] (released: 2026-03-10)
 
 ### Features
 - feat: Add .github actions and issue templates ([#1])
@@ -43,7 +51,7 @@ adheres to _[Semantic Versioning][semver]._
 
 
 
-## [1.0.1] (released: 2025-03-10)
+## [1.0.1] (released: 2026-03-10)
 
 ### Chores
 - Fix version in `package.json` and `npm-shrinkwrap.json` to 1.0.1. Update NPM.
@@ -51,14 +59,15 @@ adheres to _[Semantic Versioning][semver]._
 
 
 
-## [1.0.0] (released: 2025-03-09)
+## [1.0.0] (released: 2026-03-09)
 
 ### Features
 - Initial release of Nexus Webfont Converter.
 
 
 
-[Unreleased]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.1.0...1.1.1
 [1.1.0]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.0.2...1.1.0
 [1.0.2]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.0.1...1.0.2
 [1.0.1]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.0.0...1.0.1
