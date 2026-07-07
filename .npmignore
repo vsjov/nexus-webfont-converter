@@ -3,6 +3,7 @@ src/
 
 # Build inputs
 build/
+fonts-sample/
 
 # TypeScript project files
 tsconfig*.json

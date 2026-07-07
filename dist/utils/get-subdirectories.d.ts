@@ -1,8 +1,8 @@
 /**
  * Returns the names of all immediate subdirectories inside `dirPath`.
- * Entries that cannot be stat-ed are silently skipped.
  *
  * @param dirPath - Directory to scan
+ * @returns Immediate subdirectory names
  */
 export declare const getSubdirectories: (dirPath: string) => string[];
 export default getSubdirectories;

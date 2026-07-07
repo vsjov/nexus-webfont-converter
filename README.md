@@ -25,9 +25,12 @@ After that, the `wfc` command will be available in your terminal. Run `wfc
 ## What it does
 Given a directory of **TTF** or **OTF** source fonts, the converter:
 
-1. **Converts** each font file to WOFF and WOFF2 formats using a multicore
-   worker thread pool (one thread per logical CPU core) - fonts are processed in
-   parallel and progress is logged in real-time as each file completes
+1. **Converts** each font file to WOFF and WOFF2 formats using forked child
+   processes (one process per source font, up to the available CPU
+   parallelism) so every parallel conversion can use the fast native
+   ttf2woff2 addon - fonts are
+   processed in parallel and progress is logged in real-time as each output
+   completes
 2. **Normalizes** output filenames to lowercase hyphenated form
    (`DMSans-BoldItalic.ttf` -> `dm-sans-bold-italic.woff2`)
 3. **Copies** license files (`.txt`, `.md`, `.pdf`, or files without extension)
@@ -44,8 +47,8 @@ The pipeline runs:
 ```
 clean output
   -> convert fonts (WOFF + WOFF2) + copy licenses  [parallel]
-       font conversion uses a worker thread pool (one thread per CPU core)
-       progress is logged in real-time as each file completes
+       font conversion uses child processes up to available CPU parallelism
+       progress is logged in real-time as each output completes
   -> generate SCSS
   -> compile CSS
   -> generate HTML preview
@@ -109,6 +112,13 @@ Additional commands:
   in the corresponding `.scss` file.
 - `npm run sync`: Runs `compile-css`, `recompile-html`, and `remove-unused` in
   sequence.
+- `npm run test:sample-fonts`: Builds the package and runs a full conversion
+  verification against the committed `fonts-sample/input/` fixture. This is
+  intentionally separate from the default test suite because the Ubuntu Mono
+  Nerd Font sample makes WOFF2 compression comparatively slow.
+- `npm run benchmark:fonts`: Builds the package, converts the same sample
+  fixture, and prints timing plus source-font throughput. Sample command output
+  is written to `fonts-sample/output`.
 
 #### CLI Options
 
@@ -119,7 +129,8 @@ Additional commands:
 | `--help` | Show help message                                                        |
 
 > **Note:** The `--out` directory cannot be empty, the same as `--in`, or a
-> subfolder of `--in`. If it doesn't exist, it will be created automatically.
+> subfolder of `--in`. The input directory also cannot be inside the output
+> directory. If `--out` doesn't exist, it will be created automatically.
 
 ```bash
 wfc --in ./fonts/source --out ./fonts/web
@@ -141,6 +152,9 @@ wfc --out ./fonts/web --recompile-html
 wfc --out ./fonts/web --remove-unused
 wfc --out ./fonts/web --sync
 ```
+
+If any font conversion fails, the command prints warnings for the failed
+outputs and exits with a non-zero status instead of silently continuing.
 
 ## Output files
 | File                | Description                                            |
@@ -175,6 +189,40 @@ variants default to `normal`.
 > conventions.  Unusual naming patterns may not be detected correctly. Always
 > review the generated `[font-name].html` and `[font-name].scss` before
 > deploying.
+
+## WOFF2 performance
+
+WOFF2 compression is CPU-intensive, especially for fonts with extended
+character sets such as Nerd Fonts. The converter prefers the native ttf2woff2
+addon, which is roughly 2.4x faster than the WASM fallback (measured 8.9s vs
+21.3s for a 2.3 MB Nerd Font). Conversions run in child processes so every
+parallel conversion can load the native addon. If the native addon cannot be
+loaded (for example when the addon build failed during install), the converter
+falls back to WASM and reports a warning in the conversion summary. Set
+`TTF2WOFF2_VERSION=native` or `TTF2WOFF2_VERSION=wasm` to force a specific
+converter.
+
+## OTF support
+
+The converter accepts both TrueType-flavored fonts and CFF-outline OTF fonts.
+The test suite includes a CFF-outline OTF fixture and verifies that it produces
+non-empty WOFF and WOFF2 output with the expected webfont signatures. Always
+review the generated HTML preview in your target browser before shipping a font
+family, especially when using unusual or vendor-specific OTF files.
+
+## Programmatic API
+
+The package exports the full pipeline for Node.js consumers:
+
+```ts
+import { runPipeline } from 'nexus-webfont-converter'
+
+await runPipeline('/absolute/path/to/source-fonts', '/absolute/path/to/web-fonts')
+```
+
+Lower-level helpers such as `convertFontsInDir`, `convertFontToWoff`,
+`convertFontToWoff2`, `generateFontFaceScss`, `compileCssFiles`, and
+`generateFontPreviewHtml` are also exported for custom workflows.
 
 ## Manual adjustments
 

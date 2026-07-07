@@ -10,6 +10,10 @@ adheres to _[Semantic Versioning][semver]._
 ### Features
 
 ### Fixes
+- feat: fix numerous bugs and implement additional optimizations ([#9])
+
+
+[#9]: https://github.com/vsjov/nexus-webfont-converter/pull/9
 
 
 

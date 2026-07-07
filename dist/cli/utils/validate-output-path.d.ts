@@ -6,11 +6,12 @@
  * Rules:
  * - Output path cannot be the same as input path
  * - Output path cannot be a subfolder of input path
+ * - Input path cannot be a subfolder of output path
  *
  * @param resolvedIn - Absolute path to the input directory
  * @param resolvedOut - Absolute path to the output directory
  * @returns Error message if invalid, `null` if valid
  */
-declare const validateOutputPath: (resolvedIn: string, resolvedOut: string) => string | null;
+export declare const validateOutputPath: (resolvedIn: string, resolvedOut: string) => string | null;
 export default validateOutputPath;
 //# sourceMappingURL=validate-output-path.d.ts.map

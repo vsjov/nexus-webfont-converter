@@ -13,12 +13,13 @@ import path from 'node:path'
  * Rules:
  * - Output path cannot be the same as input path
  * - Output path cannot be a subfolder of input path
+ * - Input path cannot be a subfolder of output path
  *
  * @param resolvedIn - Absolute path to the input directory
  * @param resolvedOut - Absolute path to the output directory
  * @returns Error message if invalid, `null` if valid
  */
-const validateOutputPath = (
+export const validateOutputPath = (
   resolvedIn: string,
   resolvedOut: string,
 ): string | null => {
@@ -26,11 +27,32 @@ const validateOutputPath = (
     return 'Output directory cannot be the same as the input directory.'
   }
 
-  if (resolvedOut.startsWith(resolvedIn + path.sep)) {
+  if (isSubPath(resolvedIn, resolvedOut)) {
     return 'Output directory cannot be a subfolder of the input directory.'
   }
 
+  if (isSubPath(resolvedOut, resolvedIn)) {
+    return 'Input directory cannot be a subfolder of the output directory.'
+  }
+
   return null
+}
+
+/**
+ * Checks whether `candidatePath` is contained by `parentPath`.
+ *
+ * @param parentPath - Absolute parent path to compare from
+ * @param candidatePath - Absolute candidate path to compare against the parent
+ * @returns `true` when the candidate is a nested path inside the parent
+ */
+const isSubPath = (parentPath: string, candidatePath: string): boolean => {
+  const relativePath = path.relative(parentPath, candidatePath)
+
+  return (
+    relativePath !== '' &&
+    !relativePath.startsWith('..') &&
+    !path.isAbsolute(relativePath)
+  )
 }
 
 export default validateOutputPath

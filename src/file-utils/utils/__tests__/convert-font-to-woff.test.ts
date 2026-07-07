@@ -6,7 +6,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 // External
-import { afterAll, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, describe, expect, it, vi } from 'vitest'
 
 // Internal
 import { convertFontToWoff } from '../convert-font-to-woff.js'
@@ -24,6 +24,10 @@ const OTF_FIXTURE = path.join(MOCKS_DIR, 'public-sans-thin.otf')
 // -----------------------------------------------------------------------------
 afterAll(() => {
   fs.rmSync(OUTPUT_DIR, { recursive: true, force: true })
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
 })
 
 // Tests
@@ -45,8 +49,12 @@ describe('Expect convertFontToWoff', () => {
       expect(output[3]).toBe(0x46)
     })
 
-    it('when converting an OTF font', async () => {
+    it('when converting a CFF-outline OTF font', async () => {
       const outputPath = path.join(OUTPUT_DIR, 'public-sans-thin.woff')
+      const input = fs.readFileSync(OTF_FIXTURE)
+
+      expect(input.subarray(0, 4).toString('ascii')).toBe('OTTO')
+      expect(input.includes(Buffer.from('CFF '))).toBe(true)
 
       await convertFontToWoff(OTF_FIXTURE, outputPath)
 
@@ -78,6 +86,19 @@ describe('Expect convertFontToWoff', () => {
       const outputSize = fs.statSync(outputPath).size
 
       expect(outputSize).toBeLessThanOrEqual(inputSize)
+    })
+  })
+
+  describe('to reuse a pre-read source buffer', () => {
+    it('when inputBuffer is provided', async () => {
+      const outputPath = path.join(OUTPUT_DIR, 'pre-read-buffer.woff')
+      const inputBuffer = fs.readFileSync(TTF_FIXTURE)
+      const readFileSpy = vi.spyOn(fs.promises, 'readFile')
+
+      await convertFontToWoff(TTF_FIXTURE, outputPath, inputBuffer)
+
+      expect(readFileSpy).not.toHaveBeenCalled()
+      expect(fs.existsSync(outputPath)).toBe(true)
     })
   })
 })

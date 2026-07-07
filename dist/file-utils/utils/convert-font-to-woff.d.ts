@@ -6,7 +6,9 @@
  * file
  * @param outputPath - Absolute or relative path where the `.woff` file will be
  * written
+ * @param inputBuffer - Optional pre-read source font buffer
+ * @returns Resolves after the WOFF file is written
  */
-export declare const convertFontToWoff: (inputPath: string, outputPath: string) => Promise<void>;
+export declare const convertFontToWoff: (inputPath: string, outputPath: string, inputBuffer?: Uint8Array) => Promise<void>;
 export default convertFontToWoff;
 //# sourceMappingURL=convert-font-to-woff.d.ts.map

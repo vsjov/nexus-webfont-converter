@@ -38,12 +38,12 @@ export const PREVIEW_GLYPHS = ['currency', 'latin1_supplemental', 'latin1', 'lat
  * to prevent partial matches (e.g. `extrabold` must be checked before `bold`).
  */
 export const WEIGHT_MAP = [
-    [/extralight|extra[-\s]?light/i, 200],
-    [/ultralight|ultra[-\s]?light/i, 200],
-    [/extrabold|extra[-\s]?bold/i, 800],
-    [/ultrabold|ultra[-\s]?bold/i, 800],
-    [/semibold|semi[-\s]?bold/i, 600],
-    [/demibold|demi[-\s]?bold/i, 600],
+    [/extra[-\s]?light/i, 200],
+    [/ultra[-\s]?light/i, 200],
+    [/extra[-\s]?bold/i, 800],
+    [/ultra[-\s]?bold/i, 800],
+    [/semi[-\s]?bold/i, 600],
+    [/demi[-\s]?bold/i, 600],
     [/thin/i, 100],
     [/light/i, 300],
     [/medium/i, 500],

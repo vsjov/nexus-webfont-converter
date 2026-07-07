@@ -4,6 +4,10 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+// Internal
+import { getEntryName } from './get-entry-name.js'
+import { isDirectoryEntry } from './is-directory-entry.js'
+
 // Types
 // -----------------------------------------------------------------------------
 export type FontTarget = {
@@ -21,17 +25,16 @@ export type FontTarget = {
  *   target (flat layout).
  *
  * @param outputDir - Root output directory (e.g. `build/out/`)
+ * @returns Font family targets
  */
 export const buildFontTargets = (outputDir: string): FontTarget[] => {
-  const entries = fs.readdirSync(outputDir)
-
-  const fontDirs = entries.filter(entry => {
-    try {
-      return fs.statSync(path.join(outputDir, entry)).isDirectory()
-    } catch {
-      return false
-    }
+  const entries = fs.readdirSync(outputDir, {
+    withFileTypes: true,
   })
+
+  const fontDirs = entries
+    .filter(entry => isDirectoryEntry(outputDir, entry))
+    .map(getEntryName)
 
   if (fontDirs.length > 0) {
     return fontDirs.map(dirName => ({
@@ -41,6 +44,7 @@ export const buildFontTargets = (outputDir: string): FontTarget[] => {
   }
 
   return entries
+    .map(getEntryName)
     .filter(
       e =>
         path.extname(e).toLowerCase() === '.scss' &&

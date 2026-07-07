@@ -2,22 +2,20 @@
 // -----------------------------------------------------------------------------
 // NodeJS
 import fs from 'node:fs';
-import path from 'node:path';
+// Internal
+import { getEntryName } from './get-entry-name.js';
+import { isDirectoryEntry } from './is-directory-entry.js';
 // Function
 // -----------------------------------------------------------------------------
 /**
  * Returns the names of all immediate subdirectories inside `dirPath`.
- * Entries that cannot be stat-ed are silently skipped.
  *
  * @param dirPath - Directory to scan
+ * @returns Immediate subdirectory names
  */
-export const getSubdirectories = (dirPath) => fs.readdirSync(dirPath).filter(entry => {
-    try {
-        return fs.statSync(path.join(dirPath, entry)).isDirectory();
-    }
-    catch {
-        return false;
-    }
-});
+export const getSubdirectories = (dirPath) => fs
+    .readdirSync(dirPath, { withFileTypes: true })
+    .filter(entry => isDirectoryEntry(dirPath, entry))
+    .map(getEntryName);
 export default getSubdirectories;
 //# sourceMappingURL=get-subdirectories.js.map

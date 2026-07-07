@@ -15,7 +15,7 @@ import path from 'node:path'
  * @returns The expanded file path
  */
 const expandTilde = (filePath: string): string =>
-  filePath.startsWith('~')
+  filePath === '~' || filePath.startsWith('~/')
     ? path.join(os.homedir(), filePath.slice(1))
     : filePath
 

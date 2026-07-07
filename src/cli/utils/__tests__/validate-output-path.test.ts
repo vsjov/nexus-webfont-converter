@@ -27,6 +27,18 @@ describe('Expect validateOutputPath', () => {
         'Output directory cannot be a subfolder of the input directory.',
       )
     })
+
+    it('when input path is a direct subfolder of output path', () => {
+      expect(validateOutputPath('/fonts/input', '/fonts')).toBe(
+        'Input directory cannot be a subfolder of the output directory.',
+      )
+    })
+
+    it('when input path is a deeply nested subfolder of output path', () => {
+      expect(validateOutputPath('/fonts/output/a/b/c', '/fonts/output')).toBe(
+        'Input directory cannot be a subfolder of the output directory.',
+      )
+    })
   })
 
   describe('to return null', () => {
@@ -44,8 +56,10 @@ describe('Expect validateOutputPath', () => {
       ).toBeNull()
     })
 
-    it('when output is the parent of input', () => {
-      expect(validateOutputPath('/fonts/input/sub', '/fonts/input')).toBeNull()
+    it('when input path shares a prefix but is not a subfolder', () => {
+      expect(
+        validateOutputPath('/fonts/output-backup', '/fonts/output'),
+      ).toBeNull()
     })
   })
 })

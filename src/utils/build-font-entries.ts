@@ -25,21 +25,33 @@ export type FontEntry = {
  * and inferred style. Results are sorted ascending by weight, then normal
  * before italic within the same weight.
  *
+ * Duplicate entries with the same normalized base, weight, and style are
+ * removed so generated SCSS does not contain repeated `@include` lines.
+ *
  * @param fontFiles - Array of font filenames (e.g. `['DMSans-Bold.ttf', 'DMSans-Italic.otf']`)
+ * @returns Sorted and deduplicated font entries
  */
 export const buildFontEntries = (fontFiles: string[]): FontEntry[] => {
-  const entries: FontEntry[] = fontFiles.map(file => {
-    const raw = basename(file, extname(file))
+  const entriesByKey = new Map<string, FontEntry>()
 
-    return {
+  for (const file of fontFiles) {
+    const raw = basename(file, extname(file))
+    const entry: FontEntry = {
       normalizedBase: toHyphenated(raw),
       weight: inferFontWeight(raw),
       style: inferFontStyle(raw),
     }
-  })
+    const key = `${entry.normalizedBase}:${entry.weight}:${entry.style}`
+
+    if (!entriesByKey.has(key)) entriesByKey.set(key, entry)
+  }
+
+  const entries = Array.from(entriesByKey.values())
 
   entries.sort((a, b) => {
     if (a.weight !== b.weight) return a.weight - b.weight
+    if (a.style === b.style)
+      return a.normalizedBase.localeCompare(b.normalizedBase)
 
     return a.style === 'normal' ? -1 : 1
   })

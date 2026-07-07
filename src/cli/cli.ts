@@ -6,6 +6,7 @@
 import fs from 'node:fs'
 import { createRequire } from 'node:module'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 
 // External
@@ -60,14 +61,44 @@ ${pc.bold('Examples:')}
 
 // Helpers
 // -----------------------------------------------------------------------------
+/**
+ * Prints an error message and exits the process with a non-zero status.
+ *
+ * @param message - User-facing error message
+ * @throws This function exits the process and does not return
+ */
 function exitWithError(message: string): never {
   console.error(`${pc.red('Error:')} ${message}`)
   process.exit(1)
 }
 
+/**
+ * Checks whether this module is running as the CLI entrypoint.
+ *
+ * @returns `true` when this file was executed directly
+ */
+const isCliEntrypoint = (): boolean =>
+  Boolean(process.argv[1]) &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+
+/**
+ * Handles unhandled CLI errors by printing a user-facing error and exiting.
+ *
+ * @param err - Error or rejection value to report
+ * @throws This function exits the process and does not return
+ */
+const handleMainError = (err: unknown): never => {
+  exitWithError(err instanceof Error ? err.message : String(err))
+}
+
 // Main
 // -----------------------------------------------------------------------------
-const main = async () => {
+/**
+ * Parses CLI arguments and runs either conversion or maintenance commands.
+ *
+ * @returns Resolves after the requested command completes
+ */
+export const main = async () => {
   const { values } = parseArgs({
     options: {
       in: { type: 'string' },
@@ -108,6 +139,12 @@ const main = async () => {
 
   // Maintenance commands - only --out is needed
   if (isMaintenanceMode) {
+    if (values.in) {
+      process.stderr.write(
+        `${pc.yellow('Notice:')} --in is ignored when using maintenance flags.\n`,
+      )
+    }
+
     if (
       !fs.existsSync(resolvedOut) ||
       !fs.statSync(resolvedOut).isDirectory()
@@ -165,6 +202,6 @@ const main = async () => {
   await runPipeline(resolvedIn, resolvedOut)
 }
 
-main().catch((err: unknown) => {
-  exitWithError((err as Error).message)
-})
+if (isCliEntrypoint()) {
+  main().catch(handleMainError)
+}
