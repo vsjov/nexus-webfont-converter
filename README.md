@@ -22,10 +22,6 @@ npm install -g .
 After that, the `wfc` command will be available in your terminal. Run `wfc
 --help` to see usage instructions.
 
-For local development, `npm start` runs the TypeScript build in watch mode. To
-perform a destructive clean install and full test/build reset, run
-`npm run reset:full`.
-
 ## What it does
 Given a directory of **TTF** or **OTF** source fonts, the converter:
 

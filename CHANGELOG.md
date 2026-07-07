@@ -27,8 +27,8 @@ adheres to _[Semantic Versioning][semver]._
 - Move `@types/cli-progress` out of runtime dependencies after verifying the
   published type surface does not expose `cli-progress` types.
 - Add CLI argument-handling and pipeline orchestration coverage.
-- Document non-zero conversion failures, `reset:full`, CFF-flavored OTF
-  support, and the programmatic `runPipeline` API.
+- Document non-zero conversion failures, CFF-flavored OTF support, and the
+  programmatic `runPipeline` API.
 - Extract shared dirent/path helper utilities used by recursive scans.
 - Prefer the native `ttf2woff2` addon directly when available, avoiding the
   package wrapper's slow WASM fallback in Node ESM environments.
