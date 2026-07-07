@@ -16,7 +16,6 @@ import {
   LICENSE_EXTENSIONS,
   OUTPUT_FORMATS,
 } from './config/constants.js'
-import { getSubdirectories } from './utils/get-subdirectories.js'
 import { convertFontsInDir } from './file-utils/convert-fonts-in-dir.js'
 import { copyLicenseFiles } from './file-utils/copy-license-files.js'
 import { generateFontFaceScss } from './scss/generate-font-face-scss.js'
@@ -24,84 +23,150 @@ import { compileCssFiles } from './scss/compile-css.js'
 import { generateFontPreviewHtml } from './html/generate-font-preview-html.js'
 import createProgress from './utils/progress.js'
 
+// Types
+// -----------------------------------------------------------------------------
+type RecursiveDirent = fs.Dirent & {
+  parentPath?: string
+  path?: string
+}
+
+type InputTreeScan = {
+  fontFiles: string[]
+  licenseFiles: string[]
+  fontGenerationDirCount: number
+}
+
 // Helpers
 // -----------------------------------------------------------------------------
 /**
- * Counts source font files under a directory.
+ * Converts a recursive dirent into a path relative to the scanned root.
  *
- * @param dirPath - Directory to scan recursively
- * @returns Number of source font files
+ * @param rootDir - Directory passed to `readdirSync`
+ * @param entry - Dirent returned from recursive `readdirSync`
+ * @returns Relative path for the entry
  */
-const countFontFiles = (dirPath: string): number =>
-  fs
-    .readdirSync(dirPath, { recursive: true, withFileTypes: true })
-    .filter(
-      entry =>
-        entry.isFile() &&
-        SOURCE_EXTENSIONS.includes(path.extname(entry.name).toLowerCase()),
-    ).length
+const getRelativeDirentPath = (
+  rootDir: string,
+  entry: RecursiveDirent,
+): string => {
+  const parentPath = entry.parentPath ?? entry.path ?? rootDir
 
-/**
- * Counts license files under a directory.
- *
- * @param dirPath - Directory to scan recursively
- * @returns Number of license files
- */
-const countLicenseFiles = (dirPath: string): number =>
-  fs
-    .readdirSync(dirPath, { recursive: true, withFileTypes: true })
-    .filter(entry => {
-      if (!entry.isFile() || entry.name === '.gitkeep') return false
-
-      return LICENSE_EXTENSIONS.includes(path.extname(entry.name).toLowerCase())
-    }).length
-
-/**
- * Checks whether a directory contains source font files directly inside it.
- *
- * @param dirPath - Directory to scan
- * @returns `true` when direct child font files exist
- */
-const hasDirectFontFiles = (dirPath: string): boolean =>
-  fs
-    .readdirSync(dirPath, { withFileTypes: true })
-    .some(
-      entry =>
-        entry.isFile() &&
-        SOURCE_EXTENSIONS.includes(path.extname(entry.name).toLowerCase()),
-    )
-
-/**
- * Counts directories that will produce SCSS and HTML progress ticks.
- *
- * @param inputDir - Root input directory
- * @returns Number of font-generation directories
- */
-const countFontGenerationDirs = (inputDir: string): number => {
-  const subdirectories = getSubdirectories(inputDir)
-
-  if (subdirectories.length === 0) return hasDirectFontFiles(inputDir) ? 1 : 0
-
-  return subdirectories.filter(dirName =>
-    hasDirectFontFiles(path.join(inputDir, dirName)),
-  ).length
+  return path.relative(rootDir, path.join(parentPath, entry.name))
 }
 
+/**
+ * Checks whether a relative path is directly inside the scanned root.
+ *
+ * @param relativePath - Relative path to inspect
+ * @returns `true` when the path has no parent directory
+ */
+const isDirectChild = (relativePath: string): boolean =>
+  path.dirname(relativePath) === '.'
+
+/**
+ * Returns the first path segment from a relative path.
+ *
+ * @param relativePath - Relative path to inspect
+ * @returns First path segment
+ */
+const getFirstPathSegment = (relativePath: string): string =>
+  relativePath.split(path.sep)[0]
+
+/**
+ * Checks whether a relative path is a direct child of an immediate
+ * subdirectory.
+ *
+ * @param relativePath - Relative path to inspect
+ * @returns `true` when the path is one level below an immediate subdirectory
+ */
+const isDirectChildOfImmediateDirectory = (relativePath: string): boolean => {
+  const parentPath = path.dirname(relativePath)
+
+  return parentPath !== '.' && !parentPath.includes(path.sep)
+}
+
+/**
+ * Scans the input tree once for source fonts, license files, and font
+ * generation directories.
+ *
+ * @param inputDir - Root input directory
+ * @returns Input tree scan details
+ */
+const scanInputTree = (inputDir: string): InputTreeScan => {
+  const entries = fs.readdirSync(inputDir, {
+    recursive: true,
+    withFileTypes: true,
+  }) as RecursiveDirent[]
+  const fontFiles: string[] = []
+  const licenseFiles: string[] = []
+  const immediateDirectories = new Set<string>()
+  const directoriesWithDirectFonts = new Set<string>()
+  let hasDirectRootFonts = false
+
+  for (const entry of entries) {
+    const relativePath = getRelativeDirentPath(inputDir, entry)
+
+    if (entry.isDirectory() && isDirectChild(relativePath)) {
+      immediateDirectories.add(entry.name)
+      continue
+    }
+
+    if (!entry.isFile()) continue
+
+    const ext = path.extname(entry.name).toLowerCase()
+
+    if (SOURCE_EXTENSIONS.includes(ext)) {
+      fontFiles.push(relativePath)
+
+      if (isDirectChild(relativePath)) {
+        hasDirectRootFonts = true
+      } else if (isDirectChildOfImmediateDirectory(relativePath)) {
+        directoriesWithDirectFonts.add(getFirstPathSegment(relativePath))
+      }
+    }
+
+    if (
+      entry.name !== '.gitkeep' &&
+      LICENSE_EXTENSIONS.includes(path.extname(entry.name).toLowerCase())
+    ) {
+      licenseFiles.push(relativePath)
+    }
+  }
+
+  const fontGenerationDirCount =
+    immediateDirectories.size === 0
+      ? hasDirectRootFonts
+        ? 1
+        : 0
+      : Array.from(immediateDirectories).filter(dirName =>
+          directoriesWithDirectFonts.has(dirName),
+        ).length
+
+  return {
+    fontFiles,
+    licenseFiles,
+    fontGenerationDirCount,
+  }
+}
+
+/**
+ * Computes the progress bar total from a pre-scanned input tree.
+ *
+ * @param scan - Pre-scanned input tree details
+ * @param formats - Output formats to generate
+ * @returns Total number of progress steps
+ */
 const computeTotalSteps = (
-  inputDir: string,
+  scan: InputTreeScan,
   formats: readonly string[],
 ): number => {
-  const fontCount = countFontFiles(inputDir)
-  const licenseCount = countLicenseFiles(inputDir)
-  const fontDirCount = countFontGenerationDirs(inputDir)
-
   return (
     1 + // clean
-    fontCount * formats.length + // font conversions
-    licenseCount + // license copies
-    fontDirCount + // SCSS per family
+    scan.fontFiles.length * formats.length + // font conversions
+    scan.licenseFiles.length + // license copies
+    scan.fontGenerationDirCount + // SCSS per family
     1 + // CSS compilation
-    fontDirCount // HTML per family
+    scan.fontGenerationDirCount // HTML per family
   )
 }
 
@@ -117,7 +182,8 @@ const computeTotalSteps = (
  */
 const runPipeline = (inputDir: string, outputDir: string): Promise<void> => {
   const formats = OUTPUT_FORMATS
-  const total = computeTotalSteps(inputDir, formats)
+  const inputTreeScan = scanInputTree(inputDir)
+  const total = computeTotalSteps(inputTreeScan, formats)
   const progress = createProgress(total)
   const warnings: string[] = []
   const warn = (msg: string) => warnings.push(msg)
@@ -135,12 +201,14 @@ const runPipeline = (inputDir: string, outputDir: string): Promise<void> => {
     convertFontsInDir(inputDir, {
       outputDir,
       formats: [...OUTPUT_FORMATS],
+      sourceFontFiles: inputTreeScan.fontFiles,
       onProgress: label => progress.tick(label),
       onWarn: warn,
     })
 
   const copyLicenses = (cb: gulp.TaskFunctionCallback) => {
     copyLicenseFiles(inputDir, outputDir, {
+      sourceLicenseFiles: inputTreeScan.licenseFiles,
       onProgress: label => progress.tick(label),
       onWarn: warn,
     })

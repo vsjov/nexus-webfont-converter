@@ -129,6 +129,24 @@ describe('Expect copyLicenseFiles', () => {
     })
   })
 
+  describe('to reuse pre-scanned license files', () => {
+    it('when sourceLicenseFiles option is provided', () => {
+      const readdirSpy = vi.spyOn(fs, 'readdirSync')
+      vi.spyOn(fs, 'mkdirSync').mockReturnValue(undefined as never)
+      vi.spyOn(fs, 'copyFileSync').mockReturnValue(undefined)
+
+      copyLicenseFiles('/input', '/output', {
+        sourceLicenseFiles: ['dm-sans/LICENSE.txt'],
+      })
+
+      expect(readdirSpy).not.toHaveBeenCalled()
+      expect(fs.copyFileSync).toHaveBeenCalledWith(
+        '/input/dm-sans/LICENSE.txt',
+        '/output/dm-sans/LICENSE.txt',
+      )
+    })
+  })
+
   describe('to create the output directory recursively', () => {
     it('when the output subdirectory does not exist', () => {
       vi.spyOn(fs, 'readdirSync').mockReturnValue([

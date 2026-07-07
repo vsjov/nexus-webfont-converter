@@ -3,6 +3,7 @@
  * Returns `null` if the directory does not exist or contains no license file.
  *
  * @param dirPath - Directory to search
+ * @returns License filename or `null`
  */
 export declare const findLicenseFile: (dirPath: string) => string | null;
 export default findLicenseFile;

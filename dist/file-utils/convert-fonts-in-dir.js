@@ -58,45 +58,51 @@ const findSourceFontFiles = (dirPath) => fs.readdirSync(dirPath, {
     .filter(isSourceFontEntry)
     .map(entry => getRelativeEntryPath(dirPath, entry));
 /**
- * Converts one source font to one output format in a worker thread.
+ * Converts one source font to one or more output formats in a worker thread.
  *
  * @param task - Conversion task metadata and callbacks
- * @returns Worker conversion result
+ * @returns Worker conversion results
  */
 const runTask = (task) => new Promise(resolve => {
     let isSettled = false;
     const worker = new Worker(new URL('./utils/font-conversion-worker.js', import.meta.url), {
         workerData: {
             inputPath: task.inputPath,
-            outputPath: task.outputPath,
-            format: task.format,
+            outputs: task.outputs,
         },
     });
-    const settle = (result) => {
+    const settle = (results) => {
         if (isSettled)
             return;
         isSettled = true;
-        if (result.success) {
-            task.onProgress?.(`Generated ${pc.green(`${task.normalizedBase}.${task.format}`)} from ${pc.blue(task.sourceName)}`);
+        for (const result of results) {
+            if (result.success) {
+                task.onProgress?.(`Generated ${pc.green(`${task.normalizedBase}.${result.format}`)} from ${pc.blue(task.sourceName)}`);
+            }
+            else {
+                task.onWarn?.(`Failed to convert ${pc.blue(task.sourceName)} to ${result.format.toUpperCase()}: ${result.error}`);
+            }
         }
-        else {
-            task.onWarn?.(`Failed to convert ${pc.blue(task.sourceName)} to ${task.format.toUpperCase()}: ${result.error}`);
-        }
-        resolve(result);
+        resolve(results);
     };
     worker.on('message', (msg) => {
-        settle(msg);
+        settle(msg.results);
     });
     worker.on('error', (err) => {
-        settle({ success: false, error: `Worker error: ${err.message}` });
+        settle(task.outputs.map(output => ({
+            format: output.format,
+            success: false,
+            error: `Worker error: ${err.message}`,
+        })));
     });
     worker.on('exit', (code) => {
         if (isSettled)
             return;
-        settle({
+        settle(task.outputs.map(output => ({
+            format: output.format,
             success: false,
             error: `Worker exited before sending a conversion result with code ${code}`,
-        });
+        })));
     });
 });
 /**
@@ -113,7 +119,7 @@ const runWithPool = async (tasks, concurrency) => {
         while (queue.length > 0) {
             const task = queue.shift();
             if (task)
-                results.push(await runTask(task));
+                results.push(...(await runTask(task)));
         }
     };
     await Promise.all(Array.from({ length: Math.min(concurrency, tasks.length) }, runLoop));
@@ -123,11 +129,11 @@ const runWithPool = async (tasks, concurrency) => {
  * Chooses a deterministic source when several tasks would write the same
  * output file.
  *
- * @param tasks - Tasks that target the same output path
- * @returns Preferred task to keep
+ * @param candidates - Output candidates that target the same output path
+ * @returns Preferred output candidate to keep
  */
-const selectPreferredTask = (tasks) => {
-    return [...tasks].sort((a, b) => {
+const selectPreferredCandidate = (candidates) => {
+    return [...candidates].sort((a, b) => {
         const extA = path.extname(a.inputPath).toLowerCase();
         const extB = path.extname(b.inputPath).toLowerCase();
         const rankA = extA === '.ttf' ? 0 : 1;
@@ -138,27 +144,65 @@ const selectPreferredTask = (tasks) => {
     })[0];
 };
 /**
- * Removes tasks that would write to the same output path.
+ * Removes output candidates that would write to the same output path.
  *
- * @param tasks - Candidate conversion tasks
+ * @param candidates - Candidate conversion outputs
  * @param onWarn - Optional warning callback for skipped duplicate outputs
- * @returns Deduplicated conversion tasks
+ * @returns Deduplicated conversion outputs
  */
-const dedupeTasksByOutputPath = (tasks, onWarn) => {
+const dedupeCandidatesByOutputPath = (candidates, onWarn) => {
     const groups = new Map();
-    for (const task of tasks) {
-        groups.set(task.outputPath, [...(groups.get(task.outputPath) ?? []), task]);
+    for (const candidate of candidates) {
+        groups.set(candidate.outputPath, [
+            ...(groups.get(candidate.outputPath) ?? []),
+            candidate,
+        ]);
     }
     return Array.from(groups.values()).map(group => {
         if (group.length === 1)
             return group[0];
-        const preferredTask = selectPreferredTask(group);
-        const skippedTasks = group.filter(task => task !== preferredTask);
-        for (const skippedTask of skippedTasks) {
-            onWarn?.(`Skipping ${pc.blue(skippedTask.sourceName)} because it would overwrite ${pc.green(path.basename(skippedTask.outputPath))} generated from ${pc.blue(preferredTask.sourceName)}`);
+        const preferredCandidate = selectPreferredCandidate(group);
+        const skippedCandidates = group.filter(candidate => candidate !== preferredCandidate);
+        for (const skippedCandidate of skippedCandidates) {
+            onWarn?.(`Skipping ${pc.blue(skippedCandidate.sourceName)} because it would overwrite ${pc.green(path.basename(skippedCandidate.outputPath))} generated from ${pc.blue(preferredCandidate.sourceName)}`);
         }
-        return preferredTask;
+        return preferredCandidate;
     });
+};
+/**
+ * Groups output candidates into one worker task per source font.
+ *
+ * @param candidates - Deduplicated output candidates
+ * @param onProgress - Optional progress callback
+ * @param onWarn - Optional warning callback
+ * @returns Conversion tasks grouped by source file
+ */
+const groupCandidatesBySource = (candidates, onProgress, onWarn) => {
+    const tasksByInputPath = new Map();
+    for (const candidate of candidates) {
+        const task = tasksByInputPath.get(candidate.inputPath);
+        if (task) {
+            task.outputs.push({
+                outputPath: candidate.outputPath,
+                format: candidate.format,
+            });
+            continue;
+        }
+        tasksByInputPath.set(candidate.inputPath, {
+            inputPath: candidate.inputPath,
+            sourceName: candidate.sourceName,
+            normalizedBase: candidate.normalizedBase,
+            outputs: [
+                {
+                    outputPath: candidate.outputPath,
+                    format: candidate.format,
+                },
+            ],
+            onProgress,
+            onWarn,
+        });
+    }
+    return Array.from(tasksByInputPath.values());
 };
 // Function
 // -----------------------------------------------------------------------------
@@ -173,6 +217,7 @@ const dedupeTasksByOutputPath = (tasks, onWarn) => {
  * @param options - Optional configuration
  * @param options.outputDir - Override destination directory (default: same as source file)
  * @param options.formats - Which formats to produce (default: `['woff', 'woff2']`)
+ * @param options.sourceFontFiles - Pre-scanned source font paths relative to `dirPath`
  *
  * @example
  * ```ts
@@ -180,13 +225,13 @@ const dedupeTasksByOutputPath = (tasks, onWarn) => {
  * ```
  */
 export const convertFontsInDir = async (dirPath, options = {}) => {
-    const { outputDir, formats = ['woff', 'woff2'], onProgress, onWarn } = options;
-    const fontFiles = findSourceFontFiles(dirPath);
+    const { outputDir, formats = ['woff', 'woff2'], sourceFontFiles, onProgress, onWarn, } = options;
+    const fontFiles = sourceFontFiles ?? findSourceFontFiles(dirPath);
     if (fontFiles.length === 0) {
         onWarn?.(`No TTF or OTF files found in ${pc.blue(dirPath)}`);
         return;
     }
-    const tasks = fontFiles.flatMap(relPath => {
+    const candidates = fontFiles.flatMap(relPath => {
         const inputPath = path.join(dirPath, relPath);
         const resolvedOutputDir = outputDir
             ? path.join(outputDir, path.dirname(relPath))
@@ -199,12 +244,11 @@ export const convertFontsInDir = async (dirPath, options = {}) => {
             format,
             sourceName,
             normalizedBase,
-            onProgress,
-            onWarn,
         }));
     });
-    const dedupedTasks = dedupeTasksByOutputPath(tasks, onWarn);
-    const results = await runWithPool(dedupedTasks, os.availableParallelism());
+    const dedupedCandidates = dedupeCandidatesByOutputPath(candidates, onWarn);
+    const tasks = groupCandidatesBySource(dedupedCandidates, onProgress, onWarn);
+    const results = await runWithPool(tasks, os.availableParallelism());
     const failureCount = results.filter(result => !result.success).length;
     if (failureCount > 0) {
         throw new Error(`${failureCount} font conversion${failureCount === 1 ? '' : 's'} failed.`);

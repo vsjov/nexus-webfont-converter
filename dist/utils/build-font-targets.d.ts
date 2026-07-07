@@ -10,6 +10,7 @@ export type FontTarget = {
  *   target (flat layout).
  *
  * @param outputDir - Root output directory (e.g. `build/out/`)
+ * @returns Font family targets
  */
 export declare const buildFontTargets: (outputDir: string) => FontTarget[];
 export default buildFontTargets;

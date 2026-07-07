@@ -18,6 +18,9 @@ adheres to _[Semantic Versioning][semver]._
 - Preserve `~user` paths instead of expanding them under the current home.
 - Ignore directory entries that happen to use a font-file extension.
 - Count only font-bearing directories in pipeline progress totals.
+- Reduce conversion worker startup and source-font reads by processing all
+  requested formats for each source font in one worker.
+- Reuse the pipeline input-tree scan for conversion and license-copy steps.
 
 
 ## [1.1.0]

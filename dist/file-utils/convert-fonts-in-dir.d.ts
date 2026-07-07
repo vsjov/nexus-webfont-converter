@@ -3,6 +3,7 @@ import type { ProgressOptions } from '../utils/progress.js';
 export type ConvertFontsInDirOptions = ProgressOptions & {
     outputDir?: string;
     formats?: OutputFormat[];
+    sourceFontFiles?: string[];
 };
 /**
  * Recursively scans `dirPath` for all `*.ttf` and `*.otf` files and converts
@@ -15,6 +16,7 @@ export type ConvertFontsInDirOptions = ProgressOptions & {
  * @param options - Optional configuration
  * @param options.outputDir - Override destination directory (default: same as source file)
  * @param options.formats - Which formats to produce (default: `['woff', 'woff2']`)
+ * @param options.sourceFontFiles - Pre-scanned source font paths relative to `dirPath`
  *
  * @example
  * ```ts

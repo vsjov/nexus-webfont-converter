@@ -3,6 +3,32 @@
 // NodeJS
 import fs from 'node:fs';
 import path from 'node:path';
+// Helpers
+// -----------------------------------------------------------------------------
+/**
+ * Checks whether a directory entry is a subdirectory.
+ *
+ * @param outputDir - Parent output directory
+ * @param entry - Directory entry to inspect
+ * @returns `true` when the entry is a directory
+ */
+const isSubdirectoryEntry = (outputDir, entry) => {
+    if (typeof entry !== 'string')
+        return entry.isDirectory();
+    try {
+        return fs.statSync(path.join(outputDir, entry)).isDirectory();
+    }
+    catch {
+        return false;
+    }
+};
+/**
+ * Gets the entry name from a directory entry.
+ *
+ * @param entry - Directory entry to read
+ * @returns Directory entry name
+ */
+const getEntryName = (entry) => typeof entry === 'string' ? entry : entry.name;
 // Function
 // -----------------------------------------------------------------------------
 /**
@@ -13,17 +39,15 @@ import path from 'node:path';
  *   target (flat layout).
  *
  * @param outputDir - Root output directory (e.g. `build/out/`)
+ * @returns Font family targets
  */
 export const buildFontTargets = (outputDir) => {
-    const entries = fs.readdirSync(outputDir);
-    const fontDirs = entries.filter(entry => {
-        try {
-            return fs.statSync(path.join(outputDir, entry)).isDirectory();
-        }
-        catch {
-            return false;
-        }
+    const entries = fs.readdirSync(outputDir, {
+        withFileTypes: true,
     });
+    const fontDirs = entries
+        .filter(entry => isSubdirectoryEntry(outputDir, entry))
+        .map(getEntryName);
     if (fontDirs.length > 0) {
         return fontDirs.map(dirName => ({
             outputFontDir: path.join(outputDir, dirName),
@@ -31,6 +55,7 @@ export const buildFontTargets = (outputDir) => {
         }));
     }
     return entries
+        .map(getEntryName)
         .filter(e => path.extname(e).toLowerCase() === '.scss' &&
         !path.basename(e).startsWith('_'))
         .map(f => ({
