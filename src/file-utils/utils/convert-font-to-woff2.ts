@@ -2,10 +2,77 @@
 // -----------------------------------------------------------------------------
 // NodeJS
 import fs from 'node:fs'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 
 // External
 import ttf2woff2 from 'ttf2woff2'
+
+// Types
+// -----------------------------------------------------------------------------
+type Ttf2Woff2Converter = (input: Uint8Array) => Uint8Array
+
+// Constants
+// -----------------------------------------------------------------------------
+const require = createRequire(import.meta.url)
+
+// State
+// -----------------------------------------------------------------------------
+let nativeConverter: Ttf2Woff2Converter | null | undefined
+
+// Helpers
+// -----------------------------------------------------------------------------
+/**
+ * Loads the native `ttf2woff2` addon directly when it is available.
+ *
+ * The upstream package currently falls back to WASM when its ESM wrapper
+ * cannot call the CommonJS `bindings` helper correctly. Loading the compiled
+ * addon directly keeps the fast native path available while preserving the
+ * package fallback for environments where native loading is not possible.
+ *
+ * @returns Native converter function, or `null` when it cannot be loaded.
+ */
+const loadNativeConverter = (): Ttf2Woff2Converter | null => {
+  if (nativeConverter !== undefined) return nativeConverter
+
+  try {
+    const packageDir = path.dirname(require.resolve('ttf2woff2/package.json'))
+    const addon = require(
+      path.join(packageDir, 'build/Release/addon.node'),
+    ) as {
+      convert: Ttf2Woff2Converter
+    }
+
+    nativeConverter = addon.convert
+  } catch {
+    nativeConverter = null
+  }
+
+  return nativeConverter
+}
+
+/**
+ * Converts a font buffer to WOFF2 using the fastest available converter.
+ *
+ * @param sourceBuffer - Source font bytes
+ * @returns WOFF2 font bytes
+ * @throws When native conversion is requested but the native addon is unavailable
+ */
+const convertBufferToWoff2 = (sourceBuffer: Uint8Array): Uint8Array => {
+  const requestedVersion = process.env['TTF2WOFF2_VERSION']?.toLowerCase()
+
+  if (requestedVersion !== 'wasm') {
+    const native = loadNativeConverter()
+
+    if (native) return native(sourceBuffer)
+
+    if (requestedVersion === 'native') {
+      throw new Error('Native ttf2woff2 addon is not available.')
+    }
+  }
+
+  return ttf2woff2(sourceBuffer)
+}
 
 // Function
 // -----------------------------------------------------------------------------
@@ -26,7 +93,7 @@ export const convertFontToWoff2 = async (
   inputBuffer?: Uint8Array,
 ): Promise<void> => {
   const sourceBuffer = inputBuffer ?? (await fs.promises.readFile(inputPath))
-  const woff2Buffer: Uint8Array = ttf2woff2(sourceBuffer)
+  const woff2Buffer = convertBufferToWoff2(sourceBuffer)
   await fs.promises.mkdir(path.dirname(outputPath), { recursive: true })
   await fs.promises.writeFile(outputPath, woff2Buffer)
 }

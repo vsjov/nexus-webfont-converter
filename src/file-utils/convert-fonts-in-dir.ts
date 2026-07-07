@@ -35,6 +35,10 @@ type ConversionTask = {
   sourceName: string
   normalizedBase: string
   outputs: ConversionOutput[]
+  onStatus?: (label: string) => void
+  onWorkerStart?: (slot: number, label: string) => void
+  onWorkerStatus?: (slot: number, label: string) => void
+  onWorkerDone?: (slot: number, label: string) => void
   onProgress?: (label: string) => void
   onWarn?: (message: string) => void
 }
@@ -49,6 +53,19 @@ type ConversionOutput = {
   outputPath: string
   format: OutputFormat
 }
+
+type WorkerMessage =
+  | {
+      status: {
+        format: OutputFormat
+      }
+    }
+  | {
+      result: ConversionTaskResult
+    }
+  | {
+      results: ConversionTaskResult[]
+    }
 
 type ConversionOutputCandidate = ConversionOutput & {
   inputPath: string
@@ -107,14 +124,20 @@ const findSourceFontFiles = (dirPath: string): string[] =>
  * Converts one source font to one or more output formats in a worker thread.
  *
  * @param task - Conversion task metadata and callbacks
+ * @param slot - Zero-based worker pool slot index
  * @returns Worker conversion results
  */
-const runTask = (task: ConversionTask): Promise<ConversionTaskResult[]> =>
+const runTask = (
+  task: ConversionTask,
+  slot: number,
+): Promise<ConversionTaskResult[]> =>
   new Promise(resolve => {
     let isSettled = false
+    const results: ConversionTaskResult[] = []
     const worker = new Worker(
       new URL('./utils/font-conversion-worker.js', import.meta.url),
       {
+        execArgv: process.execArgv.filter(arg => arg !== '--input-type=module'),
         workerData: {
           inputPath: task.inputPath,
           outputs: task.outputs,
@@ -122,28 +145,64 @@ const runTask = (task: ConversionTask): Promise<ConversionTaskResult[]> =>
       },
     )
 
-    const settle = (results: ConversionTaskResult[]) => {
+    task.onWorkerStart?.(slot, `Starting ${pc.blue(task.sourceName)}`)
+
+    const reportResult = (result: ConversionTaskResult) => {
+      if (result.success) {
+        task.onProgress?.(
+          `Generated ${pc.green(`${task.normalizedBase}.${result.format}`)} from ${pc.blue(task.sourceName)}`,
+        )
+      } else {
+        task.onWarn?.(
+          `Failed to convert ${pc.blue(task.sourceName)} to ${result.format.toUpperCase()}: ${result.error}`,
+        )
+      }
+    }
+
+    const settle = (
+      finalResults: ConversionTaskResult[],
+      shouldReport = true,
+    ) => {
       if (isSettled) return
 
       isSettled = true
 
-      for (const result of results) {
-        if (result.success) {
-          task.onProgress?.(
-            `Generated ${pc.green(`${task.normalizedBase}.${result.format}`)} from ${pc.blue(task.sourceName)}`,
-          )
-        } else {
-          task.onWarn?.(
-            `Failed to convert ${pc.blue(task.sourceName)} to ${result.format.toUpperCase()}: ${result.error}`,
-          )
-        }
+      task.onWorkerDone?.(slot, `Finished ${pc.blue(task.sourceName)}`)
+
+      if (shouldReport) {
+        for (const result of finalResults) reportResult(result)
       }
 
-      resolve(results)
+      resolve(finalResults)
     }
 
-    worker.on('message', (msg: { results: ConversionTaskResult[] }) => {
-      settle(msg.results)
+    const recordResult = (result: ConversionTaskResult) => {
+      results.push(result)
+      reportResult(result)
+
+      if (results.length === task.outputs.length) {
+        settle(results, false)
+      }
+    }
+
+    worker.on('message', (msg: WorkerMessage) => {
+      if ('status' in msg) {
+        const label = `Converting ${pc.blue(task.sourceName)} to ${msg.status.format.toUpperCase()}`
+
+        task.onStatus?.(label)
+        task.onWorkerStatus?.(slot, label)
+
+        return
+      }
+
+      if ('result' in msg) {
+        recordResult(msg.result)
+
+        return
+      }
+
+      for (const result of msg.results) reportResult(result)
+      settle(msg.results, false)
     })
 
     worker.on('error', (err: Error) => {
@@ -183,10 +242,10 @@ const runWithPool = async (
   const queue = [...tasks]
   const results: ConversionTaskResult[] = []
 
-  const runLoop = async (): Promise<void> => {
+  const runLoop = async (_unused: unknown, slot: number): Promise<void> => {
     while (queue.length > 0) {
       const task = queue.shift()
-      if (task) results.push(...(await runTask(task)))
+      if (task) results.push(...(await runTask(task, slot)))
     }
   }
 
@@ -261,12 +320,20 @@ const dedupeCandidatesByOutputPath = (
  * Groups output candidates into one worker task per source font.
  *
  * @param candidates - Deduplicated output candidates
+ * @param onStatus - Optional status callback
+ * @param onWorkerStart - Optional worker slot start callback
+ * @param onWorkerStatus - Optional worker slot status callback
+ * @param onWorkerDone - Optional worker slot completion callback
  * @param onProgress - Optional progress callback
  * @param onWarn - Optional warning callback
  * @returns Conversion tasks grouped by source file
  */
 const groupCandidatesBySource = (
   candidates: ConversionOutputCandidate[],
+  onStatus?: (label: string) => void,
+  onWorkerStart?: (slot: number, label: string) => void,
+  onWorkerStatus?: (slot: number, label: string) => void,
+  onWorkerDone?: (slot: number, label: string) => void,
   onProgress?: (label: string) => void,
   onWarn?: (message: string) => void,
 ): ConversionTask[] => {
@@ -293,6 +360,10 @@ const groupCandidatesBySource = (
           format: candidate.format,
         },
       ],
+      onStatus,
+      onWorkerStart,
+      onWorkerStatus,
+      onWorkerDone,
       onProgress,
       onWarn,
     })
@@ -329,6 +400,10 @@ export const convertFontsInDir = async (
     outputDir,
     formats = ['woff', 'woff2'],
     sourceFontFiles,
+    onStatus,
+    onWorkerStart,
+    onWorkerStatus,
+    onWorkerDone,
     onProgress,
     onWarn,
   } = options
@@ -363,7 +438,15 @@ export const convertFontsInDir = async (
   })
 
   const dedupedCandidates = dedupeCandidatesByOutputPath(candidates, onWarn)
-  const tasks = groupCandidatesBySource(dedupedCandidates, onProgress, onWarn)
+  const tasks = groupCandidatesBySource(
+    dedupedCandidates,
+    onStatus,
+    onWorkerStart,
+    onWorkerStatus,
+    onWorkerDone,
+    onProgress,
+    onWarn,
+  )
   const results = await runWithPool(tasks, os.availableParallelism())
   const failureCount = results.filter(result => !result.success).length
 

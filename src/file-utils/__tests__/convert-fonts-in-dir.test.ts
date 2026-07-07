@@ -21,19 +21,32 @@ const { workerFactory } = vi.hoisted(() => {
   type WorkerEvent =
     | {
         event: 'message'
-        value: {
-          results: Array<{
-            format: 'woff' | 'woff2'
-            success: boolean
-            error?: string
-          }>
-        }
+        value:
+          | {
+              status: {
+                format: 'woff' | 'woff2'
+              }
+            }
+          | {
+              result: {
+                format: 'woff' | 'woff2'
+                success: boolean
+                error?: string
+              }
+            }
+          | {
+              results: Array<{
+                format: 'woff' | 'woff2'
+                success: boolean
+                error?: string
+              }>
+            }
       }
     | { event: 'error'; value: Error }
     | { event: 'exit'; value: number }
 
   const workerFactory = (
-    workerEvent: WorkerEvent = {
+    workerEvents: WorkerEvent | WorkerEvent[] = {
       event: 'message',
       value: {
         results: [
@@ -47,8 +60,13 @@ const { workerFactory } = vi.hoisted(() => {
   ) =>
     function WorkerMock() {
       const handlers: Record<string, (arg: unknown) => void> = {}
+      const events = Array.isArray(workerEvents) ? workerEvents : [workerEvents]
 
-      setImmediate(() => handlers[workerEvent.event]?.(workerEvent.value))
+      setImmediate(() => {
+        for (const workerEvent of events) {
+          handlers[workerEvent.event]?.(workerEvent.value)
+        }
+      })
 
       return {
         on: (_event: string, handler: (arg: unknown) => void) => {
@@ -176,6 +194,67 @@ describe('Expect convertFontsInDir', () => {
 
       expect(readdirSpy).not.toHaveBeenCalled()
       expect(Worker).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('to report active worker slot status', () => {
+    it('when a worker starts, changes format, and completes', async () => {
+      vi.spyOn(fs, 'readdirSync').mockReturnValue([
+        'DMSans-Regular.ttf',
+      ] as never)
+      const onProgress = vi.fn()
+      const onStatus = vi.fn()
+      const onWorkerStart = vi.fn()
+      const onWorkerStatus = vi.fn()
+      const onWorkerDone = vi.fn()
+
+      vi.mocked(Worker).mockImplementation(
+        workerFactory([
+          {
+            event: 'message',
+            value: {
+              status: {
+                format: 'woff',
+              },
+            },
+          },
+          {
+            event: 'message',
+            value: {
+              result: {
+                format: 'woff',
+                success: true,
+              },
+            },
+          },
+        ]),
+      )
+
+      await convertFontsInDir('/fonts/dm-sans', {
+        formats: ['woff'],
+        onProgress,
+        onStatus,
+        onWorkerStart,
+        onWorkerStatus,
+        onWorkerDone,
+      })
+
+      expect(onWorkerStart).toHaveBeenCalledWith(
+        0,
+        expect.stringContaining('Starting'),
+      )
+      expect(onStatus).toHaveBeenCalledWith(
+        expect.stringContaining('Converting'),
+      )
+      expect(onWorkerStatus).toHaveBeenCalledWith(
+        0,
+        expect.stringContaining('Converting'),
+      )
+      expect(onProgress).toHaveBeenCalledWith(expect.stringContaining('woff'))
+      expect(onWorkerDone).toHaveBeenCalledWith(
+        0,
+        expect.stringContaining('Finished'),
+      )
     })
   })
 

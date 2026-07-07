@@ -114,6 +114,13 @@ Additional commands:
   in the corresponding `.scss` file.
 - `npm run sync`: Runs `compile-css`, `recompile-html`, and `remove-unused` in
   sequence.
+- `npm run test:sample-fonts`: Builds the package and runs a full conversion
+  verification against the committed `fonts-sample/input/` fixture. This is
+  intentionally separate from the default test suite because the Ubuntu Mono
+  Nerd Font sample makes WOFF2 compression comparatively slow.
+- `npm run benchmark:fonts`: Builds the package, converts the same sample
+  fixture, and prints timing plus source-font throughput. Sample command output
+  is written to `fonts-sample/output`.
 
 #### CLI Options
 

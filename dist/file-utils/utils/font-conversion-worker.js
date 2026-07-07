@@ -22,7 +22,8 @@ const outputs = payload.outputs ??
         : []);
 try {
     const inputBuffer = await fs.promises.readFile(payload.inputPath);
-    const results = await Promise.all(outputs.map(async (output) => {
+    for (const output of outputs) {
+        parentPort.postMessage({ status: { format: output.format } });
         try {
             if (output.format === 'woff') {
                 await convertFontToWoff(payload.inputPath, output.outputPath, inputBuffer);
@@ -30,17 +31,20 @@ try {
             else {
                 await convertFontToWoff2(payload.inputPath, output.outputPath, inputBuffer);
             }
-            return { format: output.format, success: true };
+            parentPort.postMessage({
+                result: { format: output.format, success: true },
+            });
         }
         catch (err) {
-            return {
-                format: output.format,
-                success: false,
-                error: err.message,
-            };
+            parentPort.postMessage({
+                result: {
+                    format: output.format,
+                    success: false,
+                    error: err.message,
+                },
+            });
         }
-    }));
-    parentPort.postMessage({ results });
+    }
 }
 catch (err) {
     parentPort.postMessage({

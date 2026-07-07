@@ -29,6 +29,10 @@ import createProgress from './utils/progress.js'
 
 // Types
 // -----------------------------------------------------------------------------
+export type RunPipelineOptions = {
+  formats?: Array<(typeof OUTPUT_FORMATS)[number]>
+}
+
 type InputTreeScan = {
   fontFiles: string[]
   licenseFiles: string[]
@@ -162,9 +166,15 @@ const computeTotalSteps = (
  *
  * @param inputDir - Absolute path to the directory containing source TTF/OTF fonts
  * @param outputDir - Absolute path to the output directory for converted files
+ * @param options - Optional pipeline configuration
+ * @param options.formats - Webfont output formats to generate
  */
-const runPipeline = (inputDir: string, outputDir: string): Promise<void> => {
-  const formats = OUTPUT_FORMATS
+const runPipeline = (
+  inputDir: string,
+  outputDir: string,
+  options: RunPipelineOptions = {},
+): Promise<void> => {
+  const formats = options.formats ?? OUTPUT_FORMATS
   const inputTreeScan = scanInputTree(inputDir)
   const total = computeTotalSteps(inputTreeScan, formats)
   const progress = createProgress(total)
@@ -183,8 +193,12 @@ const runPipeline = (inputDir: string, outputDir: string): Promise<void> => {
   const convertFonts = () =>
     convertFontsInDir(inputDir, {
       outputDir,
-      formats: [...OUTPUT_FORMATS],
+      formats: [...formats],
       sourceFontFiles: inputTreeScan.fontFiles,
+      onStatus: label => progress.update(label),
+      onWorkerStart: (slot, label) => progress.startWorker(slot, label),
+      onWorkerStatus: (slot, label) => progress.updateWorker(slot, label),
+      onWorkerDone: (slot, label) => progress.stopWorker(slot, label),
       onProgress: label => progress.tick(label),
       onWarn: warn,
     })
@@ -233,7 +247,15 @@ const runPipeline = (inputDir: string, outputDir: string): Promise<void> => {
   )
 
   return new Promise((resolve, reject) => {
-    pipeline(err => {
+    let isSettled = false
+
+    const finish = (err?: unknown) => {
+      if (isSettled) return
+
+      isSettled = true
+      if (typeof gulp.removeListener === 'function') {
+        gulp.removeListener('error', finish)
+      }
       progress.stop('Done')
 
       if (warnings.length > 0) {
@@ -248,7 +270,12 @@ const runPipeline = (inputDir: string, outputDir: string): Promise<void> => {
         process.stdout.write(`\nSaved to: ${pc.magenta(outputDir)}\n`)
         resolve()
       }
-    })
+    }
+
+    if (typeof gulp.once === 'function') {
+      gulp.once('error', finish)
+    }
+    pipeline(finish)
   })
 }
 

@@ -51,32 +51,60 @@ const findSourceFontFiles = (dirPath) => fs.readdirSync(dirPath, {
  * Converts one source font to one or more output formats in a worker thread.
  *
  * @param task - Conversion task metadata and callbacks
+ * @param slot - Zero-based worker pool slot index
  * @returns Worker conversion results
  */
-const runTask = (task) => new Promise(resolve => {
+const runTask = (task, slot) => new Promise(resolve => {
     let isSettled = false;
+    const results = [];
     const worker = new Worker(new URL('./utils/font-conversion-worker.js', import.meta.url), {
+        execArgv: process.execArgv.filter(arg => arg !== '--input-type=module'),
         workerData: {
             inputPath: task.inputPath,
             outputs: task.outputs,
         },
     });
-    const settle = (results) => {
+    task.onWorkerStart?.(slot, `Starting ${pc.blue(task.sourceName)}`);
+    const reportResult = (result) => {
+        if (result.success) {
+            task.onProgress?.(`Generated ${pc.green(`${task.normalizedBase}.${result.format}`)} from ${pc.blue(task.sourceName)}`);
+        }
+        else {
+            task.onWarn?.(`Failed to convert ${pc.blue(task.sourceName)} to ${result.format.toUpperCase()}: ${result.error}`);
+        }
+    };
+    const settle = (finalResults, shouldReport = true) => {
         if (isSettled)
             return;
         isSettled = true;
-        for (const result of results) {
-            if (result.success) {
-                task.onProgress?.(`Generated ${pc.green(`${task.normalizedBase}.${result.format}`)} from ${pc.blue(task.sourceName)}`);
-            }
-            else {
-                task.onWarn?.(`Failed to convert ${pc.blue(task.sourceName)} to ${result.format.toUpperCase()}: ${result.error}`);
-            }
+        task.onWorkerDone?.(slot, `Finished ${pc.blue(task.sourceName)}`);
+        if (shouldReport) {
+            for (const result of finalResults)
+                reportResult(result);
         }
-        resolve(results);
+        resolve(finalResults);
+    };
+    const recordResult = (result) => {
+        results.push(result);
+        reportResult(result);
+        if (results.length === task.outputs.length) {
+            settle(results, false);
+        }
     };
     worker.on('message', (msg) => {
-        settle(msg.results);
+        if ('status' in msg) {
+            const label = `Converting ${pc.blue(task.sourceName)} to ${msg.status.format.toUpperCase()}`;
+            task.onStatus?.(label);
+            task.onWorkerStatus?.(slot, label);
+            return;
+        }
+        if ('result' in msg) {
+            recordResult(msg.result);
+            return;
+        }
+        for (const result of msg.results)
+            reportResult(result);
+        settle(msg.results, false);
     });
     worker.on('error', (err) => {
         settle(task.outputs.map(output => ({
@@ -105,11 +133,11 @@ const runTask = (task) => new Promise(resolve => {
 const runWithPool = async (tasks, concurrency) => {
     const queue = [...tasks];
     const results = [];
-    const runLoop = async () => {
+    const runLoop = async (_unused, slot) => {
         while (queue.length > 0) {
             const task = queue.shift();
             if (task)
-                results.push(...(await runTask(task)));
+                results.push(...(await runTask(task, slot)));
         }
     };
     await Promise.all(Array.from({ length: Math.min(concurrency, tasks.length) }, runLoop));
@@ -163,11 +191,15 @@ const dedupeCandidatesByOutputPath = (candidates, onWarn) => {
  * Groups output candidates into one worker task per source font.
  *
  * @param candidates - Deduplicated output candidates
+ * @param onStatus - Optional status callback
+ * @param onWorkerStart - Optional worker slot start callback
+ * @param onWorkerStatus - Optional worker slot status callback
+ * @param onWorkerDone - Optional worker slot completion callback
  * @param onProgress - Optional progress callback
  * @param onWarn - Optional warning callback
  * @returns Conversion tasks grouped by source file
  */
-const groupCandidatesBySource = (candidates, onProgress, onWarn) => {
+const groupCandidatesBySource = (candidates, onStatus, onWorkerStart, onWorkerStatus, onWorkerDone, onProgress, onWarn) => {
     const tasksByInputPath = new Map();
     for (const candidate of candidates) {
         const task = tasksByInputPath.get(candidate.inputPath);
@@ -188,6 +220,10 @@ const groupCandidatesBySource = (candidates, onProgress, onWarn) => {
                     format: candidate.format,
                 },
             ],
+            onStatus,
+            onWorkerStart,
+            onWorkerStatus,
+            onWorkerDone,
             onProgress,
             onWarn,
         });
@@ -215,7 +251,7 @@ const groupCandidatesBySource = (candidates, onProgress, onWarn) => {
  * ```
  */
 export const convertFontsInDir = async (dirPath, options = {}) => {
-    const { outputDir, formats = ['woff', 'woff2'], sourceFontFiles, onProgress, onWarn, } = options;
+    const { outputDir, formats = ['woff', 'woff2'], sourceFontFiles, onStatus, onWorkerStart, onWorkerStatus, onWorkerDone, onProgress, onWarn, } = options;
     const fontFiles = sourceFontFiles ?? findSourceFontFiles(dirPath);
     if (fontFiles.length === 0) {
         onWarn?.(`No TTF or OTF files found in ${pc.blue(dirPath)}`);
@@ -237,7 +273,7 @@ export const convertFontsInDir = async (dirPath, options = {}) => {
         }));
     });
     const dedupedCandidates = dedupeCandidatesByOutputPath(candidates, onWarn);
-    const tasks = groupCandidatesBySource(dedupedCandidates, onProgress, onWarn);
+    const tasks = groupCandidatesBySource(dedupedCandidates, onStatus, onWorkerStart, onWorkerStatus, onWorkerDone, onProgress, onWarn);
     const results = await runWithPool(tasks, os.availableParallelism());
     const failureCount = results.filter(result => !result.success).length;
     if (failureCount > 0) {

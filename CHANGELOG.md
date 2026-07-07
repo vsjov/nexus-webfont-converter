@@ -30,6 +30,12 @@ adheres to _[Semantic Versioning][semver]._
 - Document non-zero conversion failures, `reset:full`, CFF-flavored OTF
   support, and the programmatic `runPipeline` API.
 - Extract shared dirent/path helper utilities used by recursive scans.
+- Prefer the native `ttf2woff2` addon directly when available, avoiding the
+  package wrapper's slow WASM fallback in Node ESM environments.
+- Report conversion status and per-output completion so slow WOFF2 compression
+  remains visibly active for large fonts.
+- Show live worker-slot status rows alongside the overall progress bar during
+  font conversion.
 
 
 ## [1.1.0]

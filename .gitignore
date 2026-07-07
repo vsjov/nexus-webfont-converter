@@ -50,6 +50,7 @@ build/in/*
 build/out/*
 !build/in/.gitkeep
 !build/out/.gitkeep
+fonts-sample/output/
 **/__output__/
 **/playwright-report
 
@@ -79,4 +80,3 @@ testem.log
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
 test-results
-

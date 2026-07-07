@@ -8,5 +8,6 @@ export * from './scss/compile-css.js';
 export * from './html/generate-font-preview-html.js';
 export * from './html/regenerate-font-preview-html.js';
 export { default as runPipeline } from './run-pipeline.js';
+export type { RunPipelineOptions } from './run-pipeline.js';
 export type { ProgressOptions } from './utils/progress.js';
 //# sourceMappingURL=index.d.ts.map
