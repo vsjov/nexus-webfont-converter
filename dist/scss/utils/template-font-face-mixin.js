@@ -26,12 +26,14 @@ const FONT_WEIGHT_GUIDE = `// Font Weight Guide
  * @param detectedFormats - File extensions present in the output directory (e.g. `['.woff2', '.woff']`)
  */
 export const templateFontFaceMixin = (detectedFormats) => {
-    const srcLines = detectedFormats
-        .map((ext, i) => {
+    const srcLines = detectedFormats.map((ext, i) => {
         const format = FORMAT_LABELS[ext];
         const line = `    src: url("#{$fileName}${ext}") format("${format}")`;
         const isLast = i === detectedFormats.length - 1;
-        return i === 0 ? line + (isLast ? ';' : ',') : `         url("#{$fileName}${ext}") format("${format}")` + (isLast ? ';' : ',');
+        return i === 0
+            ? line + (isLast ? ';' : ',')
+            : `         url("#{$fileName}${ext}") format("${format}")` +
+                (isLast ? ';' : ',');
     });
     const fontFaceMixinTemplate = `${FONT_WEIGHT_GUIDE}
 

@@ -32,13 +32,7 @@ export const FONT_WEIGHT = {
 /**
  * Default glyph groups rendered in the font preview HTML page.
  */
-export const PREVIEW_GLYPHS = [
-    'currency',
-    'latin1_supplemental',
-    'latin1',
-    'latin2',
-    'cyrillic',
-];
+export const PREVIEW_GLYPHS = ['currency', 'latin1_supplemental', 'latin1', 'latin2', 'cyrillic'];
 /**
  * Ordered weight keyword map. Longer / more specific patterns are listed first
  * to prevent partial matches (e.g. `extrabold` must be checked before `bold`).

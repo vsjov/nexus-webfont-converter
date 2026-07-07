@@ -43,8 +43,10 @@ export const generateScssForDir = (fontDir, outputFontDir, dirName, progress = {
     }
     const familyName = inferFontFamilyName(dirName);
     const fontEntries = buildFontEntries(fontFiles);
-    const includeLines = fontEntries.map(entry => `// ${includeComment(entry.weight, entry.style)}\n` +
-        `@include fontFace("${familyName}", "${entry.normalizedBase}", ${entry.weight}, "${entry.style}");`).join('\n');
+    const includeLines = fontEntries
+        .map(entry => `// ${includeComment(entry.weight, entry.style)}\n` +
+        `@include fontFace("${familyName}", "${entry.normalizedBase}", ${entry.weight}, "${entry.style}");`)
+        .join('\n');
     const scss = `${templateFontFaceMixin(detectedFormats)}\n\n${includeLines}\n`;
     const outputFileName = `${dirName}.scss`;
     const outputPath = path.join(outputFontDir, outputFileName);

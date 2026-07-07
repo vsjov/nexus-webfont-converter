@@ -9,7 +9,6 @@ import { templateHtmlSamples } from '../template-html-samples.js'
 // Types
 import type { FontEntry } from '../../../utils/build-font-entries.js'
 
-
 // Test data
 // -----------------------------------------------------------------------------
 const singleEntry: FontEntry[] = [
@@ -22,7 +21,6 @@ const multipleEntries: FontEntry[] = [
   { normalizedBase: 'dm-sans-bold', weight: 700, style: 'normal' },
   { normalizedBase: 'dm-sans-bold-italic', weight: 700, style: 'italic' },
 ]
-
 
 // Tests
 // -----------------------------------------------------------------------------
@@ -72,40 +70,60 @@ describe('Expect templateHtmlSamples', () => {
       const result = templateHtmlSamples({
         familyName: 'DM Sans',
         dirName: 'dm-sans',
-        entries: [{ normalizedBase: 'dm-sans-regular', weight: 400, style: 'normal' }],
+        entries: [
+          { normalizedBase: 'dm-sans-regular', weight: 400, style: 'normal' },
+        ],
       })
 
-      expect(result).toContain('Regular <span class="variant__meta">400 / normal</span>')
+      expect(result).toContain(
+        'Regular <span class="variant__meta">400 / normal</span>',
+      )
     })
 
     it('when given an Italic variant (400/italic)', () => {
       const result = templateHtmlSamples({
         familyName: 'DM Sans',
         dirName: 'dm-sans',
-        entries: [{ normalizedBase: 'dm-sans-italic', weight: 400, style: 'italic' }],
+        entries: [
+          { normalizedBase: 'dm-sans-italic', weight: 400, style: 'italic' },
+        ],
       })
 
-      expect(result).toContain('Italic <span class="variant__meta">400 / italic</span>')
+      expect(result).toContain(
+        'Italic <span class="variant__meta">400 / italic</span>',
+      )
     })
 
     it('when given a Bold variant (700/normal)', () => {
       const result = templateHtmlSamples({
         familyName: 'DM Sans',
         dirName: 'dm-sans',
-        entries: [{ normalizedBase: 'dm-sans-bold', weight: 700, style: 'normal' }],
+        entries: [
+          { normalizedBase: 'dm-sans-bold', weight: 700, style: 'normal' },
+        ],
       })
 
-      expect(result).toContain('Bold <span class="variant__meta">700 / normal</span>')
+      expect(result).toContain(
+        'Bold <span class="variant__meta">700 / normal</span>',
+      )
     })
 
     it('when given a Bold Italic variant (700/italic)', () => {
       const result = templateHtmlSamples({
         familyName: 'DM Sans',
         dirName: 'dm-sans',
-        entries: [{ normalizedBase: 'dm-sans-bold-italic', weight: 700, style: 'italic' }],
+        entries: [
+          {
+            normalizedBase: 'dm-sans-bold-italic',
+            weight: 700,
+            style: 'italic',
+          },
+        ],
       })
 
-      expect(result).toContain('Bold Italic <span class="variant__meta">700 / italic</span>')
+      expect(result).toContain(
+        'Bold Italic <span class="variant__meta">700 / italic</span>',
+      )
     })
 
     it('when given multiple variants', () => {
@@ -115,8 +133,12 @@ describe('Expect templateHtmlSamples', () => {
         entries: multipleEntries,
       })
 
-      expect(result).toContain('Regular <span class="variant__meta">400 / normal</span>')
-      expect(result).toContain('Bold <span class="variant__meta">700 / normal</span>')
+      expect(result).toContain(
+        'Regular <span class="variant__meta">400 / normal</span>',
+      )
+      expect(result).toContain(
+        'Bold <span class="variant__meta">700 / normal</span>',
+      )
     })
   })
 
@@ -125,10 +147,14 @@ describe('Expect templateHtmlSamples', () => {
       const result = templateHtmlSamples({
         familyName: 'DM Sans',
         dirName: 'dm-sans',
-        entries: [{ normalizedBase: 'dm-sans-bold', weight: 700, style: 'normal' }],
+        entries: [
+          { normalizedBase: 'dm-sans-bold', weight: 700, style: 'normal' },
+        ],
       })
 
-      expect(result).toContain('font-family: \'DM Sans\'; font-weight: 700; font-style: normal;')
+      expect(result).toContain(
+        "font-family: 'DM Sans'; font-weight: 700; font-style: normal;",
+      )
     })
   })
 
@@ -194,7 +220,9 @@ describe('Expect templateHtmlSamples', () => {
       })
 
       expect(result).toContain('<footer>')
-      expect(result).toContain('<a href="LICENSE.txt"><b>License:</b> LICENSE.txt</a>')
+      expect(result).toContain(
+        '<a href="LICENSE.txt"><b>License:</b> LICENSE.txt</a>',
+      )
     })
 
     it('when licenseFile is null', () => {

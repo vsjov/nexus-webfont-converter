@@ -20,7 +20,10 @@ import { LICENSE_EXTENSIONS } from '../config/constants.js';
  */
 export const copyLicenseFiles = (inputDir, outputDir, progress = {}) => {
     const { onProgress } = progress;
-    const allEntries = fs.readdirSync(inputDir, { recursive: true, encoding: 'utf-8' });
+    const allEntries = fs.readdirSync(inputDir, {
+        recursive: true,
+        encoding: 'utf-8',
+    });
     const licenseFiles = allEntries.filter(entry => {
         if (path.basename(entry) === '.gitkeep')
             return false;

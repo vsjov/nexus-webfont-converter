@@ -3,11 +3,10 @@
 // Internal
 import type { FontEntry } from '../../utils/build-font-entries.js'
 
-
 // Constants
 // -----------------------------------------------------------------------------
-const INCLUDE_RE = /@include fontFace\("([^"]+)",\s*"([^"]+)",\s*(\d+),\s*"(normal|italic)"\)/g
-
+const INCLUDE_RE =
+  /@include fontFace\("([^"]+)",\s*"([^"]+)",\s*(\d+),\s*"(normal|italic)"\)/g
 
 // Function
 // -----------------------------------------------------------------------------

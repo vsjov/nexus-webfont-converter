@@ -7,7 +7,6 @@ import forEachFontDir from '../utils/for-each-font-dir.js'
 // Types
 import type { ProgressOptions } from '../utils/progress.js'
 
-
 // Functions
 // -----------------------------------------------------------------------------
 /**
@@ -20,11 +19,16 @@ import type { ProgressOptions } from '../utils/progress.js'
 export const generateFontPreviewHtml = (
   inputDir: string,
   outputDir: string,
-  progress: ProgressOptions = {}
+  progress: ProgressOptions = {},
 ): void => {
-  forEachFontDir(inputDir, outputDir, progress.onWarn, (fontDir, outputFontDir, dirName) => {
-    generateHtmlForDir(fontDir, outputFontDir, dirName, progress)
-  })
+  forEachFontDir(
+    inputDir,
+    outputDir,
+    progress.onWarn,
+    (fontDir, outputFontDir, dirName) => {
+      generateHtmlForDir(fontDir, outputFontDir, dirName, progress)
+    },
+  )
 }
 
 export default generateFontPreviewHtml

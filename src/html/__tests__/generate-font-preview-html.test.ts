@@ -9,7 +9,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 // Internal
 import { generateFontPreviewHtml } from '../generate-font-preview-html.js'
 
-
 // Mocks
 // -----------------------------------------------------------------------------
 
@@ -18,7 +17,6 @@ vi.mock('../utils/generate-html-for-dir.js', () => ({
 }))
 
 const { generateHtmlForDir } = await import('../utils/generate-html-for-dir.js')
-
 
 // Tests
 // -----------------------------------------------------------------------------
@@ -33,15 +31,30 @@ describe('Expect generateFontPreviewHtml', () => {
 
   describe('to call generateHtmlForDir for each font subdirectory', () => {
     it('when input directory contains font subdirectories', () => {
-      vi.spyOn(fs, 'readdirSync').mockReturnValue(['dm-sans', 'roboto'] as never)
+      vi.spyOn(fs, 'readdirSync').mockReturnValue([
+        'dm-sans',
+        'roboto',
+      ] as never)
 
-      vi.spyOn(fs, 'statSync').mockReturnValue({ isDirectory: () => true } as never)
+      vi.spyOn(fs, 'statSync').mockReturnValue({
+        isDirectory: () => true,
+      } as never)
 
       generateFontPreviewHtml('/input', '/output')
 
       expect(generateHtmlForDir).toHaveBeenCalledTimes(2)
-      expect(generateHtmlForDir).toHaveBeenCalledWith('/input/dm-sans', '/output/dm-sans', 'dm-sans', expect.any(Object))
-      expect(generateHtmlForDir).toHaveBeenCalledWith('/input/roboto', '/output/roboto', 'roboto', expect.any(Object))
+      expect(generateHtmlForDir).toHaveBeenCalledWith(
+        '/input/dm-sans',
+        '/output/dm-sans',
+        'dm-sans',
+        expect.any(Object),
+      )
+      expect(generateHtmlForDir).toHaveBeenCalledWith(
+        '/input/roboto',
+        '/output/roboto',
+        'roboto',
+        expect.any(Object),
+      )
     })
   })
 
@@ -68,7 +81,9 @@ describe('Expect generateFontPreviewHtml', () => {
     it('when no subdirectories are found', () => {
       vi.spyOn(fs, 'readdirSync').mockReturnValue(['README.md'] as never)
 
-      vi.spyOn(fs, 'statSync').mockReturnValue({ isDirectory: () => false } as never)
+      vi.spyOn(fs, 'statSync').mockReturnValue({
+        isDirectory: () => false,
+      } as never)
 
       generateFontPreviewHtml('/input', '/output')
 
@@ -78,7 +93,10 @@ describe('Expect generateFontPreviewHtml', () => {
 
   describe('to handle statSync errors gracefully', () => {
     it('when statSync throws for an entry', () => {
-      vi.spyOn(fs, 'readdirSync').mockReturnValue(['broken-link', 'dm-sans'] as never)
+      vi.spyOn(fs, 'readdirSync').mockReturnValue([
+        'broken-link',
+        'dm-sans',
+      ] as never)
 
       vi.spyOn(fs, 'statSync').mockImplementation(((filePath: string) => {
         if (filePath.includes('broken-link')) throw new Error('ENOENT')
@@ -89,7 +107,12 @@ describe('Expect generateFontPreviewHtml', () => {
       generateFontPreviewHtml('/input', '/output')
 
       expect(generateHtmlForDir).toHaveBeenCalledTimes(1)
-      expect(generateHtmlForDir).toHaveBeenCalledWith('/input/dm-sans', '/output/dm-sans', 'dm-sans', expect.any(Object))
+      expect(generateHtmlForDir).toHaveBeenCalledWith(
+        '/input/dm-sans',
+        '/output/dm-sans',
+        'dm-sans',
+        expect.any(Object),
+      )
     })
   })
 })

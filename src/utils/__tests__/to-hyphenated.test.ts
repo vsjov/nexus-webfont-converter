@@ -6,7 +6,6 @@ import { describe, expect, it } from 'vitest'
 // Internal
 import { toHyphenated } from '../to-hyphenated.js'
 
-
 // Tests
 // -----------------------------------------------------------------------------
 describe('Expect toHyphenated', () => {
@@ -36,7 +35,9 @@ describe('Expect toHyphenated', () => {
 
   describe('to handle spaces and underscores', () => {
     it('when input contains spaces', () => {
-      expect(toHyphenated('DM Sans Medium Italic')).toBe('dm-sans-medium-italic')
+      expect(toHyphenated('DM Sans Medium Italic')).toBe(
+        'dm-sans-medium-italic',
+      )
     })
 
     it('when input contains underscores', () => {

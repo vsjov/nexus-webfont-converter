@@ -6,7 +6,6 @@ import { describe, expect, it } from 'vitest'
 // Internal
 import { inferFontStyle } from '../infer-font-style.js'
 
-
 // Tests
 // -----------------------------------------------------------------------------
 describe('Expect inferFontStyle', () => {

@@ -33,9 +33,12 @@ export const templateHtmlSamples = ({ familyName, dirName, entries, glyphs = [],
             return 'Regular';
         if (weight === 400 && style === 'italic')
             return 'Italic';
-        return style === 'italic' ? `${weightLabel(weight)} Italic` : weightLabel(weight);
+        return style === 'italic'
+            ? `${weightLabel(weight)} Italic`
+            : weightLabel(weight);
     };
-    const variantSections = entries.map(({ weight, style }) => {
+    const variantSections = entries
+        .map(({ weight, style }) => {
         const label = variantLabel(weight, style);
         const fontStyle = `font-family: '${escapeHtml(familyName)}'; font-weight: ${weight}; font-style: ${style};`;
         const extraLines = glyphs.map(key => `    <p class="variant__sample variant__sample--${toCssClass(key)}" style="${fontStyle}">${GLYPHS[key]}</p>`);
@@ -50,7 +53,8 @@ export const templateHtmlSamples = ({ familyName, dirName, entries, glyphs = [],
             ...extraLines,
             `  </section>`,
         ].join('\n');
-    }).join('\n\n');
+    })
+        .join('\n\n');
     return [
         `<!DOCTYPE html>`,
         `<html lang="en">`,

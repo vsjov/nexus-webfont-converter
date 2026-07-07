@@ -25,7 +25,9 @@ import { getSubdirectories } from './get-subdirectories.js';
 const forEachFontDir = (inputDir, outputDir, onWarn, fn) => {
     const fontDirs = getSubdirectories(inputDir);
     if (fontDirs.length === 0) {
-        const directFonts = fs.readdirSync(inputDir).filter(e => SOURCE_EXTENSIONS.includes(path.extname(e).toLowerCase()));
+        const directFonts = fs
+            .readdirSync(inputDir)
+            .filter(e => SOURCE_EXTENSIONS.includes(path.extname(e).toLowerCase()));
         if (directFonts.length > 0) {
             fn(inputDir, outputDir, path.basename(inputDir));
             return;

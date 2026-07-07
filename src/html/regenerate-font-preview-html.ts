@@ -16,7 +16,6 @@ import { parseScssEntries } from './utils/parse-scss-entries.js'
 import { templateHtmlSamples } from './utils/template-html-samples.js'
 import createLogger from '../utils/logger.js'
 
-
 // Function
 // -----------------------------------------------------------------------------
 /**
@@ -50,7 +49,9 @@ export const regenerateFontPreviewHtml = (outputDir: string): void => {
     const scssPath = path.join(outputFontDir, `${dirName}.scss`)
 
     if (!fs.existsSync(scssPath)) {
-      logger.warn(`No SCSS file found in ${pc.blue(outputFontDir)} - skipping HTML regeneration`)
+      logger.warn(
+        `No SCSS file found in ${pc.blue(outputFontDir)} - skipping HTML regeneration`,
+      )
       continue
     }
 
@@ -58,7 +59,9 @@ export const regenerateFontPreviewHtml = (outputDir: string): void => {
     const fontEntries = parseScssEntries(scssContent)
 
     if (fontEntries.length === 0) {
-      logger.warn(`No @include fontFace entries found in ${pc.blue(scssPath)} - skipping HTML regeneration`)
+      logger.warn(
+        `No @include fontFace entries found in ${pc.blue(scssPath)} - skipping HTML regeneration`,
+      )
       continue
     }
 
@@ -76,7 +79,9 @@ export const regenerateFontPreviewHtml = (outputDir: string): void => {
 
     fs.writeFileSync(outputPath, html, 'utf-8')
 
-    logger.log(`Regenerated ${pc.green(`${dirName}.html`)} for ${pc.blue(familyName)} (${fontEntries.length} variants)`)
+    logger.log(
+      `Regenerated ${pc.green(`${dirName}.html`)} for ${pc.blue(familyName)} (${fontEntries.length} variants)`,
+    )
   }
 }
 

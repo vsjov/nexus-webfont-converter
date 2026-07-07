@@ -13,7 +13,6 @@ import { LICENSE_EXTENSIONS } from '../config/constants.js'
 // Types
 import type { ProgressOptions } from '../utils/progress.js'
 
-
 // Function
 // -----------------------------------------------------------------------------
 /**
@@ -25,9 +24,16 @@ import type { ProgressOptions } from '../utils/progress.js'
  * @param outputDir - Root output directory (e.g. `build/out/`)
  * @param progress - Progress and warning callbacks
  */
-export const copyLicenseFiles = (inputDir: string, outputDir: string, progress: ProgressOptions = {}): void => {
+export const copyLicenseFiles = (
+  inputDir: string,
+  outputDir: string,
+  progress: ProgressOptions = {},
+): void => {
   const { onProgress } = progress
-  const allEntries = fs.readdirSync(inputDir, { recursive: true, encoding: 'utf-8' })
+  const allEntries = fs.readdirSync(inputDir, {
+    recursive: true,
+    encoding: 'utf-8',
+  })
 
   const licenseFiles = allEntries.filter(entry => {
     if (path.basename(entry) === '.gitkeep') return false
@@ -46,7 +52,9 @@ export const copyLicenseFiles = (inputDir: string, outputDir: string, progress: 
     const destPath = path.join(outputDir, relPath)
     fs.mkdirSync(path.dirname(destPath), { recursive: true })
     fs.copyFileSync(path.join(inputDir, relPath), destPath)
-    onProgress?.(`Copied license ${pc.green(path.basename(relPath))} -> ${pc.blue(path.dirname(destPath))}`)
+    onProgress?.(
+      `Copied license ${pc.green(path.basename(relPath))} -> ${pc.blue(path.dirname(destPath))}`,
+    )
   }
 }
 

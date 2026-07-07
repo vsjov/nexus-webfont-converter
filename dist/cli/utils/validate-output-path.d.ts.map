@@ -1,1 +1,1 @@
-{"version":3,"file":"validate-output-path.d.ts","sourceRoot":"","sources":["../../../src/cli/utils/validate-output-path.ts"],"names":[],"mappings":"AAQA;;;;;;;;;;;;GAYG;AACH,QAAA,MAAM,kBAAkB,GAAI,YAAY,MAAM,EAAE,aAAa,MAAM,KAAG,MAAM,GAAG,IAU9E,CAAA;AAED,eAAe,kBAAkB,CAAA"}
+{"version":3,"file":"validate-output-path.d.ts","sourceRoot":"","sources":["../../../src/cli/utils/validate-output-path.ts"],"names":[],"mappings":"AAOA;;;;;;;;;;;;GAYG;AACH,QAAA,MAAM,kBAAkB,GACtB,YAAY,MAAM,EAClB,aAAa,MAAM,KAClB,MAAM,GAAG,IAUX,CAAA;AAED,eAAe,kBAAkB,CAAA"}

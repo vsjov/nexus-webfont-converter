@@ -8,11 +8,11 @@ import { GLYPHS, type GlyphKey } from './glyphs.js'
 // Types
 // -----------------------------------------------------------------------------
 interface BuildHtmlOptions {
-  familyName: string,
-  dirName: string,
-  entries: FontEntry[],
-  glyphs?: GlyphKey[],
-  licenseFile?: string | null,
+  familyName: string
+  dirName: string
+  entries: FontEntry[]
+  glyphs?: GlyphKey[]
+  licenseFile?: string | null
 }
 
 // Functions
@@ -48,35 +48,41 @@ export const templateHtmlSamples = ({
   glyphs = [],
   licenseFile = null,
 }: BuildHtmlOptions): string => {
-  const weightLabel = (weight: number): string => FONT_WEIGHT[weight] ?? `${weight}`
+  const weightLabel = (weight: number): string =>
+    FONT_WEIGHT[weight] ?? `${weight}`
 
   const variantLabel = (weight: number, style: 'normal' | 'italic'): string => {
     if (weight === 400 && style === 'normal') return 'Regular'
     if (weight === 400 && style === 'italic') return 'Italic'
 
-    return style === 'italic' ? `${weightLabel(weight)} Italic` : weightLabel(weight)
+    return style === 'italic'
+      ? `${weightLabel(weight)} Italic`
+      : weightLabel(weight)
   }
 
-  const variantSections = entries.map(({ weight, style }) => {
-    const label = variantLabel(weight, style)
-    const fontStyle = `font-family: '${escapeHtml(familyName)}'; font-weight: ${weight}; font-style: ${style};`
+  const variantSections = entries
+    .map(({ weight, style }) => {
+      const label = variantLabel(weight, style)
+      const fontStyle = `font-family: '${escapeHtml(familyName)}'; font-weight: ${weight}; font-style: ${style};`
 
-    const extraLines = glyphs.map(key =>
-      `    <p class="variant__sample variant__sample--${toCssClass(key)}" style="${fontStyle}">${GLYPHS[key]}</p>`
-    )
+      const extraLines = glyphs.map(
+        key =>
+          `    <p class="variant__sample variant__sample--${toCssClass(key)}" style="${fontStyle}">${GLYPHS[key]}</p>`,
+      )
 
-    return [
-      `  <section class="variant">`,
-      `    <h2 class="variant__label">${label} <span class="variant__meta">${weight} / ${style}</span></h2>`,
-      `    <p class="variant__sample variant__sample--large" style="${fontStyle}">${GLYPHS.sample}</p>`,
-      `    <p class="variant__sample variant__sample--small" style="${fontStyle}">${GLYPHS.sample}</p>`,
-      `    <p class="variant__sample variant__sample--latin" style="${fontStyle}">${GLYPHS.latin}</p>`,
-      `    <p class="variant__sample variant__sample--digits" style="${fontStyle}">${GLYPHS.digits}</p>`,
-      `    <p class="variant__sample variant__sample--punctuation" style="${fontStyle}">${GLYPHS.punctuation}</p>`,
-      ...extraLines,
-      `  </section>`,
-    ].join('\n')
-  }).join('\n\n')
+      return [
+        `  <section class="variant">`,
+        `    <h2 class="variant__label">${label} <span class="variant__meta">${weight} / ${style}</span></h2>`,
+        `    <p class="variant__sample variant__sample--large" style="${fontStyle}">${GLYPHS.sample}</p>`,
+        `    <p class="variant__sample variant__sample--small" style="${fontStyle}">${GLYPHS.sample}</p>`,
+        `    <p class="variant__sample variant__sample--latin" style="${fontStyle}">${GLYPHS.latin}</p>`,
+        `    <p class="variant__sample variant__sample--digits" style="${fontStyle}">${GLYPHS.digits}</p>`,
+        `    <p class="variant__sample variant__sample--punctuation" style="${fontStyle}">${GLYPHS.punctuation}</p>`,
+        ...extraLines,
+        `  </section>`,
+      ].join('\n')
+    })
+    .join('\n\n')
 
   return [
     `<!DOCTYPE html>`,
@@ -99,8 +105,9 @@ export const templateHtmlSamples = ({
     `    .variant__sample--latin { font-size: 1.25rem; color: #666; }`,
     `    .variant__sample--digits { font-size: 1.25rem; color: #666; }`,
     `    .variant__sample--punctuation { font-size: 1rem; color: #999; }`,
-    ...glyphs.map(key =>
-      `    .variant__sample--${toCssClass(key)} { font-size: 1rem; color: #999; }`
+    ...glyphs.map(
+      key =>
+        `    .variant__sample--${toCssClass(key)} { font-size: 1rem; color: #999; }`,
     ),
     `    footer { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #e5e5e5; font-size: 0.75rem; color: #aaa; }`,
     `    footer a { color: #888; text-decoration: underline; }`,

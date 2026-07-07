@@ -50,7 +50,9 @@ export const removeUnusedFonts = (outputDir) => {
         }
         const scssContent = fs.readFileSync(scssPath, 'utf-8');
         const referencedBases = new Set(parseScssEntries(scssContent).map(e => e.normalizedBase));
-        const fontFiles = fs.readdirSync(outputFontDir).filter(f => WEB_FONT_EXTENSIONS.includes(path.extname(f).toLowerCase()));
+        const fontFiles = fs
+            .readdirSync(outputFontDir)
+            .filter(f => WEB_FONT_EXTENSIONS.includes(path.extname(f).toLowerCase()));
         for (const file of fontFiles) {
             const base = path.basename(file, path.extname(file));
             if (!referencedBases.has(base)) {

@@ -6,7 +6,6 @@ import { describe, expect, it } from 'vitest'
 // Internal
 import { buildFontEntries } from '../build-font-entries.js'
 
-
 // Tests
 // -----------------------------------------------------------------------------
 describe('Expect buildFontEntries', () => {
@@ -14,31 +13,37 @@ describe('Expect buildFontEntries', () => {
     it('when given a single TTF file', () => {
       const result = buildFontEntries(['DMSans-Regular.ttf'])
 
-      expect(result).toEqual([{
-        normalizedBase: 'dm-sans-regular',
-        weight: 400,
-        style: 'normal',
-      }])
+      expect(result).toEqual([
+        {
+          normalizedBase: 'dm-sans-regular',
+          weight: 400,
+          style: 'normal',
+        },
+      ])
     })
 
     it('when given an OTF file', () => {
       const result = buildFontEntries(['Roboto-Bold.otf'])
 
-      expect(result).toEqual([{
-        normalizedBase: 'roboto-bold',
-        weight: 700,
-        style: 'normal',
-      }])
+      expect(result).toEqual([
+        {
+          normalizedBase: 'roboto-bold',
+          weight: 700,
+          style: 'normal',
+        },
+      ])
     })
 
     it('when given an italic font file', () => {
       const result = buildFontEntries(['DMSans-BoldItalic.ttf'])
 
-      expect(result).toEqual([{
-        normalizedBase: 'dm-sans-bold-italic',
-        weight: 700,
-        style: 'italic',
-      }])
+      expect(result).toEqual([
+        {
+          normalizedBase: 'dm-sans-bold-italic',
+          weight: 700,
+          style: 'italic',
+        },
+      ])
     })
   })
 

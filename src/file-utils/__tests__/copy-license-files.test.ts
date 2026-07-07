@@ -9,10 +9,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 // Internal
 import { copyLicenseFiles } from '../copy-license-files.js'
 
-
 // Mocks
 // -----------------------------------------------------------------------------
-
 
 // Tests
 // -----------------------------------------------------------------------------
@@ -35,16 +33,14 @@ describe('Expect copyLicenseFiles', () => {
 
       expect(fs.copyFileSync).toHaveBeenCalledWith(
         '/input/dm-sans/LICENSE.txt',
-        '/output/dm-sans/LICENSE.txt'
+        '/output/dm-sans/LICENSE.txt',
       )
     })
   })
 
   describe('to copy files with no extension', () => {
     it('when extensionless license files exist', () => {
-      vi.spyOn(fs, 'readdirSync').mockReturnValue([
-        'dm-sans/LICENSE',
-      ] as never)
+      vi.spyOn(fs, 'readdirSync').mockReturnValue(['dm-sans/LICENSE'] as never)
 
       vi.spyOn(fs, 'statSync').mockReturnValue({ isFile: () => true } as never)
       vi.spyOn(fs, 'mkdirSync').mockReturnValue(undefined as never)
@@ -54,7 +50,7 @@ describe('Expect copyLicenseFiles', () => {
 
       expect(fs.copyFileSync).toHaveBeenCalledWith(
         '/input/dm-sans/LICENSE',
-        '/output/dm-sans/LICENSE'
+        '/output/dm-sans/LICENSE',
       )
     })
   })
@@ -76,7 +72,7 @@ describe('Expect copyLicenseFiles', () => {
 
       expect(fs.copyFileSync).toHaveBeenCalledWith(
         '/input/dm-sans/LICENSE.txt',
-        '/output/dm-sans/LICENSE.txt'
+        '/output/dm-sans/LICENSE.txt',
       )
     })
   })
@@ -95,7 +91,7 @@ describe('Expect copyLicenseFiles', () => {
 
       expect(fs.copyFileSync).toHaveBeenCalledWith(
         '/input/dm-sans/LICENSE.md',
-        '/output/dm-sans/LICENSE.md'
+        '/output/dm-sans/LICENSE.md',
       )
     })
   })
@@ -121,9 +117,7 @@ describe('Expect copyLicenseFiles', () => {
 
   describe('to skip directories', () => {
     it('when an entry is a directory, not a file', () => {
-      vi.spyOn(fs, 'readdirSync').mockReturnValue([
-        'sub-dir',
-      ] as never)
+      vi.spyOn(fs, 'readdirSync').mockReturnValue(['sub-dir'] as never)
 
       vi.spyOn(fs, 'statSync').mockReturnValue({ isFile: () => false } as never)
       vi.spyOn(fs, 'mkdirSync').mockReturnValue(undefined as never)
@@ -147,7 +141,9 @@ describe('Expect copyLicenseFiles', () => {
 
       copyLicenseFiles('/input', '/output')
 
-      expect(fs.mkdirSync).toHaveBeenCalledWith('/output/dm-sans', { recursive: true })
+      expect(fs.mkdirSync).toHaveBeenCalledWith('/output/dm-sans', {
+        recursive: true,
+      })
     })
   })
 

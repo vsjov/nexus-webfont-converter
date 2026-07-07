@@ -10,23 +10,21 @@ import { workerData, parentPort } from 'node:worker_threads'
 import ttf2woff from 'ttf2woff'
 import ttf2woff2 from 'ttf2woff2'
 
-
 // Worker
 // -----------------------------------------------------------------------------
 if (!parentPort) process.exit(1)
 
 const { inputPath, outputPath, format } = workerData as {
-  inputPath: string,
-  outputPath: string,
-  format: 'woff' | 'woff2',
+  inputPath: string
+  outputPath: string
+  format: 'woff' | 'woff2'
 }
 
 try {
   const inputBuffer = fs.readFileSync(inputPath)
 
-  const outputBuffer: Uint8Array = format === 'woff'
-    ? ttf2woff(inputBuffer)
-    : ttf2woff2(inputBuffer)
+  const outputBuffer: Uint8Array =
+    format === 'woff' ? ttf2woff(inputBuffer) : ttf2woff2(inputBuffer)
 
   fs.mkdirSync(path.dirname(outputPath), { recursive: true })
   fs.writeFileSync(outputPath, outputBuffer)

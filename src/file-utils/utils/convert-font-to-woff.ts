@@ -8,7 +8,6 @@ import path from 'node:path'
 // @ts-expect-error - no type declarations available for ttf2woff
 import ttf2woff from 'ttf2woff'
 
-
 // Function
 // -----------------------------------------------------------------------------
 /**
@@ -20,7 +19,10 @@ import ttf2woff from 'ttf2woff'
  * @param outputPath - Absolute or relative path where the `.woff` file will be
  * written
  */
-export const convertFontToWoff = async (inputPath: string, outputPath: string): Promise<void> => {
+export const convertFontToWoff = async (
+  inputPath: string,
+  outputPath: string,
+): Promise<void> => {
   const inputBuffer = await fs.promises.readFile(inputPath)
   const woffResult: Uint8Array = ttf2woff(inputBuffer)
   await fs.promises.mkdir(path.dirname(outputPath), { recursive: true })

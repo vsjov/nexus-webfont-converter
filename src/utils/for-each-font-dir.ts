@@ -11,7 +11,6 @@ import pc from 'picocolors'
 import { SOURCE_EXTENSIONS } from '../config/constants.js'
 import { getSubdirectories } from './get-subdirectories.js'
 
-
 // Function
 // -----------------------------------------------------------------------------
 /**
@@ -30,14 +29,14 @@ const forEachFontDir = (
   inputDir: string,
   outputDir: string,
   onWarn: ((message: string) => void) | undefined,
-  fn: (fontDir: string, outputFontDir: string, dirName: string) => void
+  fn: (fontDir: string, outputFontDir: string, dirName: string) => void,
 ): void => {
   const fontDirs = getSubdirectories(inputDir)
 
   if (fontDirs.length === 0) {
-    const directFonts = fs.readdirSync(inputDir).filter(e =>
-      SOURCE_EXTENSIONS.includes(path.extname(e).toLowerCase())
-    )
+    const directFonts = fs
+      .readdirSync(inputDir)
+      .filter(e => SOURCE_EXTENSIONS.includes(path.extname(e).toLowerCase()))
 
     if (directFonts.length > 0) {
       fn(inputDir, outputDir, path.basename(inputDir))
@@ -51,11 +50,7 @@ const forEachFontDir = (
   }
 
   for (const dirName of fontDirs) {
-    fn(
-      path.join(inputDir, dirName),
-      path.join(outputDir, dirName),
-      dirName
-    )
+    fn(path.join(inputDir, dirName), path.join(outputDir, dirName), dirName)
   }
 }
 

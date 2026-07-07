@@ -6,13 +6,12 @@ import path from 'node:path'
 // Local
 import { setOptions } from '../dev-tools/utils/set-options.js'
 
-
 // Configuration
 // -----------------------------------------------------------------------------
 type FontConverterParameters = {
-  rootDir: string,
-  inputDir: string | null,
-  outputDir: string | null,
+  rootDir: string
+  inputDir: string | null
+  outputDir: string | null
 }
 
 /**

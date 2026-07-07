@@ -6,7 +6,6 @@ import { describe, expect, it } from 'vitest'
 // Internal
 import { templateFontFaceMixin } from '../template-font-face-mixin.js'
 
-
 // Tests
 // -----------------------------------------------------------------------------
 describe('Expect templateFontFaceMixin', () => {

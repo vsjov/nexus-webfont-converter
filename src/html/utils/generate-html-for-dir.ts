@@ -17,7 +17,6 @@ import { templateHtmlSamples } from './template-html-samples.js'
 // Types
 import type { ProgressOptions } from '../../utils/progress.js'
 
-
 // Function
 // -----------------------------------------------------------------------------
 /**
@@ -32,15 +31,19 @@ export const generateHtmlForDir = (
   fontDir: string,
   outputFontDir: string,
   dirName: string,
-  progress: ProgressOptions = {}
+  progress: ProgressOptions = {},
 ): void => {
   const { onProgress, onWarn } = progress
 
   const entries = fs.readdirSync(fontDir)
-  const fontFiles = entries.filter(f => SOURCE_EXTENSIONS.includes(path.extname(f).toLowerCase()))
+  const fontFiles = entries.filter(f =>
+    SOURCE_EXTENSIONS.includes(path.extname(f).toLowerCase()),
+  )
 
   if (fontFiles.length === 0) {
-    onWarn?.(`No TTF or OTF files found in ${pc.blue(fontDir)} - skipping HTML generation`)
+    onWarn?.(
+      `No TTF or OTF files found in ${pc.blue(fontDir)} - skipping HTML generation`,
+    )
 
     return
   }
@@ -63,7 +66,9 @@ export const generateHtmlForDir = (
   fs.mkdirSync(outputFontDir, { recursive: true })
   fs.writeFileSync(outputPath, html, 'utf-8')
 
-  onProgress?.(`Generated ${pc.green(outputFileName)} for ${pc.blue(familyName)}`)
+  onProgress?.(
+    `Generated ${pc.green(outputFileName)} for ${pc.blue(familyName)}`,
+  )
 }
 
 export default generateHtmlForDir

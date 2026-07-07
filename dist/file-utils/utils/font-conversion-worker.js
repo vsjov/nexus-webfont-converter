@@ -15,9 +15,7 @@ if (!parentPort)
 const { inputPath, outputPath, format } = workerData;
 try {
     const inputBuffer = fs.readFileSync(inputPath);
-    const outputBuffer = format === 'woff'
-        ? ttf2woff(inputBuffer)
-        : ttf2woff2(inputBuffer);
+    const outputBuffer = format === 'woff' ? ttf2woff(inputBuffer) : ttf2woff2(inputBuffer);
     fs.mkdirSync(path.dirname(outputPath), { recursive: true });
     fs.writeFileSync(outputPath, outputBuffer);
     parentPort.postMessage({ success: true });

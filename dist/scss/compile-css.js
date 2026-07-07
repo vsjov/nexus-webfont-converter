@@ -21,7 +21,8 @@ const sass = gulpSass(sassCompiler);
  * @param outputDir - The directory containing generated `.scss` files.
  */
 export const compileCssFiles = (outputDir) => {
-    return gulp.src(`${outputDir}/**/*.scss`, { base: outputDir })
+    return gulp
+        .src(`${outputDir}/**/*.scss`, { base: outputDir })
         .pipe(sass().on('error', sass.logError))
         .pipe(lightningcss({ minify: true, sourceMap: false }))
         .pipe(rename((path) => {

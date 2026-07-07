@@ -10,7 +10,6 @@ import { describe, expect, it } from 'vitest'
 // Internal
 import expandTilde from '../expand-tilde.js'
 
-
 // Tests
 // -----------------------------------------------------------------------------
 describe('Expect expandTilde', () => {
@@ -18,7 +17,9 @@ describe('Expect expandTilde', () => {
 
   describe('to expand tilde to home directory', () => {
     it('when path starts with ~/', () => {
-      expect(expandTilde('~/fonts/source')).toBe(path.join(home, 'fonts/source'))
+      expect(expandTilde('~/fonts/source')).toBe(
+        path.join(home, 'fonts/source'),
+      )
     })
 
     it('when path is just ~', () => {

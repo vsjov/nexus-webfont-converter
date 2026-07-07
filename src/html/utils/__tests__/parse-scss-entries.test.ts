@@ -6,10 +6,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 // Internal
 import { parseScssEntries } from '../parse-scss-entries.js'
 
-
 // Mocks
 // -----------------------------------------------------------------------------
-
 
 // Tests
 // -----------------------------------------------------------------------------
@@ -20,7 +18,11 @@ describe('Expect parseScssEntries', () => {
 
   describe('to return an empty array', () => {
     it('when content has no @include fontFace lines', () => {
-      expect(parseScssEntries('// Font Weight Guide\n@mixin fontFace($a, $b, $c, $d) {}')).toEqual([])
+      expect(
+        parseScssEntries(
+          '// Font Weight Guide\n@mixin fontFace($a, $b, $c, $d) {}',
+        ),
+      ).toEqual([])
     })
 
     it('when content is an empty string', () => {

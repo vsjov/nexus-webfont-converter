@@ -13,6 +13,8 @@ import path from 'node:path';
  * @param filePath - The file path to expand
  * @returns The expanded file path
  */
-const expandTilde = (filePath) => filePath.startsWith('~') ? path.join(os.homedir(), filePath.slice(1)) : filePath;
+const expandTilde = (filePath) => filePath.startsWith('~')
+    ? path.join(os.homedir(), filePath.slice(1))
+    : filePath;
 export default expandTilde;
 //# sourceMappingURL=expand-tilde.js.map

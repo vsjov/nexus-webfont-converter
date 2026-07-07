@@ -8,15 +8,13 @@ import { toHyphenated } from './to-hyphenated.js'
 import { inferFontWeight } from './infer-font-weight.js'
 import { inferFontStyle } from './infer-font-style.js'
 
-
 // Types
 // -----------------------------------------------------------------------------
 export type FontEntry = {
-  normalizedBase: string,
-  weight: number,
-  style: 'normal' | 'italic',
+  normalizedBase: string
+  weight: number
+  style: 'normal' | 'italic'
 }
-
 
 // Functions
 // -----------------------------------------------------------------------------

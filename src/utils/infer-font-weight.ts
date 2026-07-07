@@ -3,7 +3,6 @@
 // Internal
 import { WEIGHT_MAP } from '../config/constants.js'
 
-
 // Function
 // -----------------------------------------------------------------------------
 /**

@@ -12,11 +12,9 @@ import { buildFontTargets } from '../utils/build-font-targets.js'
 import { parseScssEntries } from '../html/utils/parse-scss-entries.js'
 import createLogger from '../utils/logger.js'
 
-
 // Constants
 // -----------------------------------------------------------------------------
 const WEB_FONT_EXTENSIONS = ['.woff', '.woff2']
-
 
 // Function
 // -----------------------------------------------------------------------------
@@ -62,19 +60,21 @@ export const removeUnusedFonts = (outputDir: string): void => {
     const scssContent = fs.readFileSync(scssPath, 'utf-8')
 
     const referencedBases = new Set(
-      parseScssEntries(scssContent).map(e => e.normalizedBase)
+      parseScssEntries(scssContent).map(e => e.normalizedBase),
     )
 
-    const fontFiles = fs.readdirSync(outputFontDir).filter(f =>
-      WEB_FONT_EXTENSIONS.includes(path.extname(f).toLowerCase())
-    )
+    const fontFiles = fs
+      .readdirSync(outputFontDir)
+      .filter(f => WEB_FONT_EXTENSIONS.includes(path.extname(f).toLowerCase()))
 
     for (const file of fontFiles) {
       const base = path.basename(file, path.extname(file))
 
       if (!referencedBases.has(base)) {
         fs.unlinkSync(path.join(outputFontDir, file))
-        logger.log(`Removed unused font ${pc.red(file)} from ${pc.blue(dirName)}`)
+        logger.log(
+          `Removed unused font ${pc.red(file)} from ${pc.blue(dirName)}`,
+        )
       }
     }
   }

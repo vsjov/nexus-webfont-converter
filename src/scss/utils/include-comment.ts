@@ -3,7 +3,6 @@
 // Internal
 import { FONT_WEIGHT } from '../../config/constants.js'
 
-
 // Function
 // -----------------------------------------------------------------------------
 /**
@@ -14,7 +13,10 @@ import { FONT_WEIGHT } from '../../config/constants.js'
  * - other normal -> weight label (e.g. `Bold`)
  * - other italic -> weight label + ` Italic` (e.g. `Bold Italic`)
  */
-export const includeComment = (weight: number, style: 'normal' | 'italic'): string => {
+export const includeComment = (
+  weight: number,
+  style: 'normal' | 'italic',
+): string => {
   if (weight === 400) return style === 'italic' ? 'Italic' : 'Normal'
 
   const label = FONT_WEIGHT[weight] ?? `${weight}`
