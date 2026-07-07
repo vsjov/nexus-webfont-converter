@@ -80,9 +80,9 @@ Included issues / PRs:
     - [ ] If the workflow fails before publishing, delete the tag before correcting and retagging the release branch. Never reuse a version after it has been published.
 
 7. **Set the next development version**
-    - [ ] For a current-line patch, bump to the next patch development version:
+    - [ ] For a current-line patch, bump to the next minor development version:
         ```bash
-        npm run version-update -- patch
+        npm run version-update -- minor
         git add package.json npm-shrinkwrap.json
         git commit -m "release: bump next development version"
         git push
