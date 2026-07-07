@@ -1,9 +1,11 @@
 // Imports
 // -----------------------------------------------------------------------------
 // External
+import browserslist from 'browserslist'
 import gulp from 'gulp'
 // @ts-expect-error - No type declarations available
 import gulpSass from 'gulp-sass'
+import { browserslistToTargets } from 'lightningcss'
 import * as sassCompiler from 'sass'
 import rename from 'gulp-rename'
 // @ts-expect-error - No type declarations available
@@ -54,6 +56,9 @@ export const compileCssFiles = (outputDir: string) => {
   const lightningcssStream = lightningcss({
     minify: true,
     sourceMap: false,
+    targets: browserslistToTargets(
+      browserslist(undefined, { path: outputDir }),
+    ),
   }) as Transform
   const renameStream = rename((path: ParsedPath) => {
     path.extname = '.css'

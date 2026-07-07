@@ -7,19 +7,11 @@ import path from 'node:path';
 import pc from 'picocolors';
 // Config
 import { LICENSE_EXTENSIONS } from '../config/constants.js';
+// Internal
+import { getRelativeDirentPath, } from '../utils/get-relative-dirent-path.js';
+import { isFileEntry } from '../utils/is-file-entry.js';
 // Helpers
 // -----------------------------------------------------------------------------
-/**
- * Converts a recursive dirent into a path relative to the scanned root.
- *
- * @param rootDir - Directory passed to `readdirSync`
- * @param entry - Dirent returned from recursive `readdirSync`
- * @returns Relative path for the entry
- */
-const getRelativeDirentPath = (rootDir, entry) => {
-    const parentPath = entry.parentPath ?? entry.path ?? rootDir;
-    return path.relative(rootDir, path.join(parentPath, entry.name));
-};
 /**
  * Converts a recursive directory entry into a relative path.
  *
@@ -41,14 +33,7 @@ const isLicenseFileEntry = (inputDir, entry) => {
     const ext = path.extname(entryName).toLowerCase();
     if (!LICENSE_EXTENSIONS.includes(ext))
         return false;
-    if (typeof entry !== 'string')
-        return entry.isFile();
-    try {
-        return fs.statSync(path.join(inputDir, entry)).isFile();
-    }
-    catch {
-        return false;
-    }
+    return isFileEntry(inputDir, entry);
 };
 /**
  * Finds license files under a directory.

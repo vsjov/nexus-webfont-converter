@@ -5,6 +5,7 @@
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 // External
 import pc from 'picocolors';
@@ -59,6 +60,22 @@ function exitWithError(message) {
     console.error(`${pc.red('Error:')} ${message}`);
     process.exit(1);
 }
+/**
+ * Checks whether this module is running as the CLI entrypoint.
+ *
+ * @returns `true` when this file was executed directly
+ */
+const isCliEntrypoint = () => Boolean(process.argv[1]) &&
+    path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+/**
+ * Handles unhandled CLI errors by printing a user-facing error and exiting.
+ *
+ * @param err - Error or rejection value to report
+ * @throws This function exits the process and does not return
+ */
+const handleMainError = (err) => {
+    exitWithError(err instanceof Error ? err.message : String(err));
+};
 // Main
 // -----------------------------------------------------------------------------
 /**
@@ -66,7 +83,7 @@ function exitWithError(message) {
  *
  * @returns Resolves after the requested command completes
  */
-const main = async () => {
+export const main = async () => {
     const { values } = parseArgs({
         options: {
             in: { type: 'string' },
@@ -143,7 +160,7 @@ const main = async () => {
     const { default: runPipeline } = await import('../run-pipeline.js');
     await runPipeline(resolvedIn, resolvedOut);
 };
-main().catch((err) => {
-    exitWithError(err instanceof Error ? err.message : String(err));
-});
+if (isCliEntrypoint()) {
+    main().catch(handleMainError);
+}
 //# sourceMappingURL=cli.js.map

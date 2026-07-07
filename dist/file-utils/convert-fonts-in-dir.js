@@ -10,20 +10,10 @@ import { URL } from 'node:url';
 import pc from 'picocolors';
 // Internal
 import { SOURCE_EXTENSIONS } from '../config/constants.js';
+import { getRelativeDirentPath, } from '../utils/get-relative-dirent-path.js';
 import { toHyphenated } from '../utils/to-hyphenated.js';
 // Helpers
 // -----------------------------------------------------------------------------
-/**
- * Converts a recursive dirent into a path relative to the scanned root.
- *
- * @param rootDir - Directory passed to `readdirSync`
- * @param entry - Dirent returned from recursive `readdirSync`
- * @returns Relative path for the entry
- */
-const getRelativeDirentPath = (rootDir, entry) => {
-    const parentPath = entry.parentPath ?? entry.path ?? rootDir;
-    return path.relative(rootDir, path.join(parentPath, entry.name));
-};
 /**
  * Checks whether a recursive directory entry is a supported source font file.
  *

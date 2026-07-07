@@ -22,12 +22,17 @@ npm install -g .
 After that, the `wfc` command will be available in your terminal. Run `wfc
 --help` to see usage instructions.
 
+For local development, `npm start` runs the TypeScript build in watch mode. To
+perform a destructive clean install and full test/build reset, run
+`npm run reset:full`.
+
 ## What it does
 Given a directory of **TTF** or **OTF** source fonts, the converter:
 
-1. **Converts** each font file to WOFF and WOFF2 formats using a multicore
-   worker thread pool (one thread per logical CPU core) - fonts are processed in
-   parallel and progress is logged in real-time as each file completes
+1. **Converts** each font file to WOFF and WOFF2 formats using worker threads
+   (one worker per source font, up to the available CPU parallelism) - fonts are
+   processed in parallel and progress is logged in real-time as each output
+   completes
 2. **Normalizes** output filenames to lowercase hyphenated form
    (`DMSans-BoldItalic.ttf` -> `dm-sans-bold-italic.woff2`)
 3. **Copies** license files (`.txt`, `.md`, `.pdf`, or files without extension)
@@ -44,8 +49,8 @@ The pipeline runs:
 ```
 clean output
   -> convert fonts (WOFF + WOFF2) + copy licenses  [parallel]
-       font conversion uses a worker thread pool (one thread per CPU core)
-       progress is logged in real-time as each file completes
+       font conversion uses worker threads up to available CPU parallelism
+       progress is logged in real-time as each output completes
   -> generate SCSS
   -> compile CSS
   -> generate HTML preview
@@ -119,7 +124,8 @@ Additional commands:
 | `--help` | Show help message                                                        |
 
 > **Note:** The `--out` directory cannot be empty, the same as `--in`, or a
-> subfolder of `--in`. If it doesn't exist, it will be created automatically.
+> subfolder of `--in`. The input directory also cannot be inside the output
+> directory. If `--out` doesn't exist, it will be created automatically.
 
 ```bash
 wfc --in ./fonts/source --out ./fonts/web
@@ -141,6 +147,9 @@ wfc --out ./fonts/web --recompile-html
 wfc --out ./fonts/web --remove-unused
 wfc --out ./fonts/web --sync
 ```
+
+If any font conversion fails, the command prints warnings for the failed
+outputs and exits with a non-zero status instead of silently continuing.
 
 ## Output files
 | File                | Description                                            |
@@ -175,6 +184,28 @@ variants default to `normal`.
 > conventions.  Unusual naming patterns may not be detected correctly. Always
 > review the generated `[font-name].html` and `[font-name].scss` before
 > deploying.
+
+## OTF support
+
+The converter accepts both TrueType-flavored fonts and CFF-outline OTF fonts.
+The test suite includes a CFF-outline OTF fixture and verifies that it produces
+non-empty WOFF and WOFF2 output with the expected webfont signatures. Always
+review the generated HTML preview in your target browser before shipping a font
+family, especially when using unusual or vendor-specific OTF files.
+
+## Programmatic API
+
+The package exports the full pipeline for Node.js consumers:
+
+```ts
+import { runPipeline } from 'nexus-webfont-converter'
+
+await runPipeline('/absolute/path/to/source-fonts', '/absolute/path/to/web-fonts')
+```
+
+Lower-level helpers such as `convertFontsInDir`, `convertFontToWoff`,
+`convertFontToWoff2`, `generateFontFaceScss`, `compileCssFiles`, and
+`generateFontPreviewHtml` are also exported for custom workflows.
 
 ## Manual adjustments
 

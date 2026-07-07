@@ -6,6 +6,7 @@
 import fs from 'node:fs'
 import { createRequire } from 'node:module'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { parseArgs } from 'node:util'
 
 // External
@@ -71,6 +72,25 @@ function exitWithError(message: string): never {
   process.exit(1)
 }
 
+/**
+ * Checks whether this module is running as the CLI entrypoint.
+ *
+ * @returns `true` when this file was executed directly
+ */
+const isCliEntrypoint = (): boolean =>
+  Boolean(process.argv[1]) &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+
+/**
+ * Handles unhandled CLI errors by printing a user-facing error and exiting.
+ *
+ * @param err - Error or rejection value to report
+ * @throws This function exits the process and does not return
+ */
+const handleMainError = (err: unknown): never => {
+  exitWithError(err instanceof Error ? err.message : String(err))
+}
+
 // Main
 // -----------------------------------------------------------------------------
 /**
@@ -78,7 +98,7 @@ function exitWithError(message: string): never {
  *
  * @returns Resolves after the requested command completes
  */
-const main = async () => {
+export const main = async () => {
   const { values } = parseArgs({
     options: {
       in: { type: 'string' },
@@ -182,6 +202,6 @@ const main = async () => {
   await runPipeline(resolvedIn, resolvedOut)
 }
 
-main().catch((err: unknown) => {
-  exitWithError(err instanceof Error ? err.message : String(err))
-})
+if (isCliEntrypoint()) {
+  main().catch(handleMainError)
+}

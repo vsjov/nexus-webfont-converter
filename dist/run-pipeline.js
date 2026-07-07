@@ -15,20 +15,10 @@ import { copyLicenseFiles } from './file-utils/copy-license-files.js';
 import { generateFontFaceScss } from './scss/generate-font-face-scss.js';
 import { compileCssFiles } from './scss/compile-css.js';
 import { generateFontPreviewHtml } from './html/generate-font-preview-html.js';
+import { getRelativeDirentPath, } from './utils/get-relative-dirent-path.js';
 import createProgress from './utils/progress.js';
 // Helpers
 // -----------------------------------------------------------------------------
-/**
- * Converts a recursive dirent into a path relative to the scanned root.
- *
- * @param rootDir - Directory passed to `readdirSync`
- * @param entry - Dirent returned from recursive `readdirSync`
- * @returns Relative path for the entry
- */
-const getRelativeDirentPath = (rootDir, entry) => {
-    const parentPath = entry.parentPath ?? entry.path ?? rootDir;
-    return path.relative(rootDir, path.join(parentPath, entry.name));
-};
 /**
  * Checks whether a relative path is directly inside the scanned root.
  *

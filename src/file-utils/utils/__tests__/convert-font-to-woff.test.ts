@@ -49,8 +49,12 @@ describe('Expect convertFontToWoff', () => {
       expect(output[3]).toBe(0x46)
     })
 
-    it('when converting an OTF font', async () => {
+    it('when converting a CFF-outline OTF font', async () => {
       const outputPath = path.join(OUTPUT_DIR, 'public-sans-thin.woff')
+      const input = fs.readFileSync(OTF_FIXTURE)
+
+      expect(input.subarray(0, 4).toString('ascii')).toBe('OTTO')
+      expect(input.includes(Buffer.from('CFF '))).toBe(true)
 
       await convertFontToWoff(OTF_FIXTURE, outputPath)
 

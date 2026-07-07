@@ -23,6 +23,13 @@ adheres to _[Semantic Versioning][semver]._
 - Reuse the pipeline input-tree scan for conversion and license-copy steps.
 - Reuse tested converter helpers from the worker and export the full pipeline
   API for programmatic consumers.
+- Pass Browserslist targets through Lightning CSS when compiling generated CSS.
+- Move `@types/cli-progress` out of runtime dependencies after verifying the
+  published type surface does not expose `cli-progress` types.
+- Add CLI argument-handling and pipeline orchestration coverage.
+- Document non-zero conversion failures, `reset:full`, CFF-flavored OTF
+  support, and the programmatic `runPipeline` API.
+- Extract shared dirent/path helper utilities used by recursive scans.
 
 
 ## [1.1.0]
