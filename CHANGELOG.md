@@ -7,6 +7,10 @@ adheres to _[Semantic Versioning][semver]._
 
 ## [Unreleased]
 
+
+
+## [1.1.3]
+
 ### Chores
 - chore: update dependencies ([#16])
 
@@ -80,7 +84,8 @@ adheres to _[Semantic Versioning][semver]._
 
 
 
-[Unreleased]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.1.2...HEAD
+[Unreleased]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.1.3...HEAD
+[1.1.3]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.1.2...1.1.3
 [1.1.2]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.1.1...1.1.2
 [1.1.1]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.1.0...1.1.1
 [1.1.0]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.0.2...1.1.0
