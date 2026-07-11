@@ -201,13 +201,13 @@ describe('Expect runPipeline', () => {
       vi.mocked(convertFontsInDir).mockImplementationOnce(
         async (_inputDir, options) => {
           order.push('convert')
-          options.onWarn?.('conversion warning')
+          options?.onWarn?.('conversion warning')
         },
       )
       vi.mocked(copyLicenseFiles).mockImplementationOnce(
         (_inputDir, _outputDir, options) => {
           order.push('copy')
-          options.onWarn?.('license warning')
+          options?.onWarn?.('license warning')
         },
       )
 
@@ -227,7 +227,7 @@ describe('Expect runPipeline', () => {
       vi.mocked(convertFontsInDir).mockImplementationOnce(
         async (_inputDir, options) => {
           order.push('convert')
-          options.onWarn?.('conversion failed')
+          options?.onWarn?.('conversion failed')
           throw new Error('1 font conversion failed.')
         },
       )
