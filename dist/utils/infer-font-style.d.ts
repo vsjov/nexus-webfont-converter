@@ -7,6 +7,6 @@
  * inferFontStyle('DMSans-BoldOblique') // -> 'italic'
  * inferFontStyle('DMSans-Bold')        // -> 'normal'
  */
-export declare const inferFontStyle: (fileName: string) => "normal" | "italic";
+export declare const inferFontStyle: (fileName: string) => 'normal' | 'italic';
 export default inferFontStyle;
 //# sourceMappingURL=infer-font-style.d.ts.map

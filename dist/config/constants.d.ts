@@ -5,7 +5,7 @@ export declare const SOURCE_EXTENSIONS: string[];
 /**
  * Output web font formats produced by the conversion pipeline
  */
-export declare const OUTPUT_FORMATS: readonly ["woff", "woff2"];
+export declare const OUTPUT_FORMATS: readonly ['woff', 'woff2'];
 /** Union of the string literals in `OUTPUT_FORMATS` (i.e. `'woff' | 'woff2'`).
  * */
 export type OutputFormat = (typeof OUTPUT_FORMATS)[number];
