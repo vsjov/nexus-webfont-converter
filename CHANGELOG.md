@@ -7,9 +7,11 @@ adheres to _[Semantic Versioning][semver]._
 
 ## [Unreleased]
 
-### Features
+### Chores
+- chore: update dependencies ([#16])
 
-### Fixes
+
+[#16]: https://github.com/vsjov/nexus-webfont-converter/pull/16
 
 
 
