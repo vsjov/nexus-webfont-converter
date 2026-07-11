@@ -7,6 +7,10 @@ adheres to _[Semantic Versioning][semver]._
 
 ## [Unreleased]
 
+
+
+## [1.1.4] (released: 2026-07-11)
+
 ### Fixes
 - fix: prevent font worker IPC result races ([#19])
 
@@ -15,7 +19,7 @@ adheres to _[Semantic Versioning][semver]._
 
 
 
-## [1.1.3]
+## [1.1.3] (released: 2026-07-11)
 
 ### Chores
 - chore: update dependencies ([#16])
@@ -90,7 +94,8 @@ adheres to _[Semantic Versioning][semver]._
 
 
 
-[Unreleased]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.1.3...HEAD
+[Unreleased]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.1.4...HEAD
+[1.1.4]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.1.3...1.1.4
 [1.1.3]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.1.2...1.1.3
 [1.1.2]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.1.1...1.1.2
 [1.1.1]: https://github.com/vsjov/nexus-webfont-converter/compare/v1.1.0...1.1.1
