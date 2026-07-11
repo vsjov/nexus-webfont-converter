@@ -7,6 +7,12 @@ adheres to _[Semantic Versioning][semver]._
 
 ## [Unreleased]
 
+### Fixes
+- fix: prevent font worker IPC result races ([#19])
+
+
+[#19]: https://github.com/vsjov/nexus-webfont-converter/pull/19
+
 
 
 ## [1.1.3]

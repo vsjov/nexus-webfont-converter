@@ -6,13 +6,17 @@ import fs from 'node:fs';
 import { convertFontToWoff } from './convert-font-to-woff.js';
 import { convertFontToWoff2 } from './convert-font-to-woff2.js';
 import { loadNativeWoff2Converter } from './load-native-woff2-converter.js';
+import { sendWorkerMessage } from './send-worker-message.js';
+import { waitForParentDisconnect } from './wait-for-parent-disconnect.js';
 // Worker
 // -----------------------------------------------------------------------------
 // Runs as a forked child process rather than a worker thread: the native
 // ttf2woff2 addon is not context-aware and can be loaded by only one thread
 // per process, so each conversion needs its own process to stay on the fast
 // native path. The task payload arrives as JSON in the first argument and
-// results are reported over the IPC channel.
+// results are reported over the IPC channel. The parent disconnects the channel
+// after receiving every expected result so process exit cannot overtake the
+// final message event.
 if (!process.send)
     process.exit(1);
 const sendToParent = process.send.bind(process);
@@ -29,7 +33,7 @@ const isUnintentionalWasmFallback = () => process.env['TTF2WOFF2_VERSION']?.toLo
 try {
     const inputBuffer = await fs.promises.readFile(payload.inputPath);
     for (const output of outputs) {
-        sendToParent({ status: { format: output.format } });
+        await sendWorkerMessage({ status: { format: output.format } }, sendToParent);
         try {
             if (output.format === 'woff') {
                 await convertFontToWoff(payload.inputPath, output.outputPath, inputBuffer);
@@ -37,7 +41,7 @@ try {
             else {
                 await convertFontToWoff2(payload.inputPath, output.outputPath, inputBuffer);
             }
-            sendToParent({
+            await sendWorkerMessage({
                 result: {
                     format: output.format,
                     success: true,
@@ -45,27 +49,27 @@ try {
                         ? { usedWasmFallback: true }
                         : {}),
                 },
-            });
+            }, sendToParent);
         }
         catch (err) {
-            sendToParent({
+            await sendWorkerMessage({
                 result: {
                     format: output.format,
                     success: false,
                     error: err.message,
                 },
-            });
+            }, sendToParent);
         }
     }
 }
 catch (err) {
-    sendToParent({
+    await sendWorkerMessage({
         results: outputs.map(output => ({
             format: output.format,
             success: false,
             error: err.message,
         })),
-    });
+    }, sendToParent);
 }
-process.disconnect?.();
+await waitForParentDisconnect(process);
 //# sourceMappingURL=font-conversion-worker.js.map

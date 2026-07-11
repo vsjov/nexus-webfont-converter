@@ -17,6 +17,7 @@ import { compileCssFiles } from './scss/compile-css.js';
 import { generateFontPreviewHtml } from './html/generate-font-preview-html.js';
 import { getRelativeDirentPath, } from './utils/get-relative-dirent-path.js';
 import createProgress from './utils/progress.js';
+import { toError } from './utils/to-error.js';
 // Helpers
 // -----------------------------------------------------------------------------
 /**
@@ -186,7 +187,7 @@ const runPipeline = (inputDir, outputDir, options = {}) => {
                 process.stderr.write(warnings.map(w => `${pc.yellow('Warning:')} ${w}`).join('\n') + '\n');
             }
             if (err) {
-                reject(err instanceof Error ? err : new Error(String(err)));
+                reject(toError(err));
             }
             else {
                 process.stdout.write(`\nSaved to: ${pc.magenta(outputDir)}\n`);
