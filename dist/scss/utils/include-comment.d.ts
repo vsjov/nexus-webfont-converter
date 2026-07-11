@@ -6,6 +6,6 @@
  * - other normal -> weight label (e.g. `Bold`)
  * - other italic -> weight label + ` Italic` (e.g. `Bold Italic`)
  */
-export declare const includeComment: (weight: number, style: "normal" | "italic") => string;
+export declare const includeComment: (weight: number, style: 'normal' | 'italic') => string;
 export default includeComment;
 //# sourceMappingURL=include-comment.d.ts.map

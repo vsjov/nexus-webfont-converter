@@ -1,1 +1,1 @@
-{"version":3,"file":"template-font-face-mixin.d.ts","sourceRoot":"","sources":["../../../src/scss/utils/template-font-face-mixin.ts"],"names":[],"mappings":"AAuBA;;;;;GAKG;AACH,eAAO,MAAM,qBAAqB,GAAI,iBAAiB,MAAM,EAAE,KAAG,MA2BjE,CAAA;AAED,eAAe,qBAAqB,CAAA"}
+{"version":3,"file":"template-font-face-mixin.d.ts","sourceRoot":"","sources":["../../../src/scss/utils/template-font-face-mixin.ts"],"names":[],"mappings":"AAuBA;;;;;GAKG;AACH,eAAO,MAAM,qBAAqB,oBAAqB,MAAM,EAAE,KAAG,MA2BjE,CAAA;eAEc,qBAAqB"}

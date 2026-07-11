@@ -46,6 +46,17 @@ vi.mock('../../run-pipeline.js', () => ({
 const originalArgv = process.argv
 
 /**
+ * Simulates process termination in tests without ending the test runner.
+ *
+ * @param code - Exit code supplied to process.exit
+ * @throws {Error} Always throws to make the attempted exit observable
+ * @returns This function never returns
+ */
+const throwProcessExit = (code?: string | number | null): never => {
+  throw new Error(`process.exit:${String(code)}`)
+}
+
+/**
  * Runs the CLI with mocked process arguments.
  *
  * @param args - Arguments passed after the executable and bin path
@@ -62,9 +73,7 @@ const runCli = async (args: string[]): Promise<void> => {
 describe('Expect CLI', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.spyOn(process, 'exit').mockImplementation((code?: string | number) => {
-      throw new Error(`process.exit:${String(code)}`)
-    })
+    vi.spyOn(process, 'exit').mockImplementation(throwProcessExit)
     vi.spyOn(process.stderr, 'write').mockImplementation(() => true)
     vi.spyOn(process.stdout, 'write').mockImplementation(() => true)
     vi.spyOn(console, 'error').mockImplementation(() => undefined)
