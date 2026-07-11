@@ -174,6 +174,8 @@ const runTask = (
 
       isSettled = true
 
+      if (worker.connected) worker.disconnect()
+
       task.onWorkerDone?.(slot, `Finished ${pc.blue(task.sourceName)}`)
 
       if (shouldReport) {

@@ -82,6 +82,8 @@ const runTask = (task, slot) => new Promise(resolve => {
         if (isSettled)
             return;
         isSettled = true;
+        if (worker.connected)
+            worker.disconnect();
         task.onWorkerDone?.(slot, `Finished ${pc.blue(task.sourceName)}`);
         if (shouldReport) {
             for (const result of finalResults)

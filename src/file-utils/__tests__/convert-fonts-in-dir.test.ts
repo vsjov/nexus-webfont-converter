@@ -17,7 +17,9 @@ import type { ChildProcess } from 'node:child_process'
 
 // Mocks
 // -----------------------------------------------------------------------------
-const { workerFactory } = vi.hoisted(() => {
+const { workerDisconnect, workerFactory } = vi.hoisted(() => {
+  const workerDisconnect = vi.fn()
+
   type WorkerEvent =
     | {
         event: 'message'
@@ -70,13 +72,15 @@ const { workerFactory } = vi.hoisted(() => {
       })
 
       return {
+        connected: true,
+        disconnect: workerDisconnect,
         on: (_event: string, handler: (arg: unknown) => void) => {
           handlers[_event] = handler
         },
       } as unknown as ChildProcess
     }
 
-  return { workerFactory }
+  return { workerDisconnect, workerFactory }
 })
 
 vi.mock('node:child_process', async importOriginal => {
@@ -144,6 +148,18 @@ describe('Expect convertFontsInDir', () => {
           expect.objectContaining({ format: 'woff2' }),
         ]),
       )
+    })
+  })
+
+  describe('to close completed workers', () => {
+    it('when every conversion result has been received by the parent', async () => {
+      vi.spyOn(fs, 'readdirSync').mockReturnValue([
+        'DMSans-Regular.ttf',
+      ] as never)
+
+      await convertFontsInDir('/fonts/dm-sans', { formats: ['woff2'] })
+
+      expect(workerDisconnect).toHaveBeenCalledOnce()
     })
   })
 

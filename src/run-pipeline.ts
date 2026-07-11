@@ -26,6 +26,7 @@ import {
   type RecursiveDirent,
 } from './utils/get-relative-dirent-path.js'
 import createProgress from './utils/progress.js'
+import { toError } from './utils/to-error.js'
 
 // Types
 // -----------------------------------------------------------------------------
@@ -265,7 +266,7 @@ const runPipeline = (
       }
 
       if (err) {
-        reject(err instanceof Error ? err : new Error(String(err)))
+        reject(toError(err))
       } else {
         process.stdout.write(`\nSaved to: ${pc.magenta(outputDir)}\n`)
         resolve()
