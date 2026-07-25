@@ -12,6 +12,7 @@ name = "wfc"
 path = "src/main.rs"
 
 [dependencies]
+clap.workspace = true
 nexus-webfont-core = { path = "../nexus-webfont-core", version = "1.2.0" }
 
 [lints]

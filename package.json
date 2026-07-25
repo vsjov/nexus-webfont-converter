@@ -6,23 +6,26 @@
   "types": "dist/index.d.ts",
   "type": "module",
   "bin": {
-    "wfc": "./dist/cli/cli.js"
+    "wfc": "./bin/wfc.cjs"
   },
   "files": [
+    "bin/",
     "dist/",
+    "docs/rust-migration.md",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
     "start": "git clean -dfx && npm ci && npm run test && npm run build",
     "prepublishOnly": "npm run build-all",
-    "build-all": "npm run format:check && npm run lint && npm run test && npm run test:scripts && npm run test:tools && npm run build && npm run build:tools && npm run pack:check",
+    "build-all": "npm run format:check && npm run lint && npm run test && npm run test:scripts && npm run test:wrapper && npm run test:tools && npm run build && npm run build:tools && npm run pack:check",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
     "lint": "oxlint .",
     "lint:fix": "oxlint . --fix",
     "test": "vitest run src",
     "test:scripts": "vitest run scripts --reporter=dot",
+    "test:wrapper": "vitest run scripts/__tests__/native-wrapper.test.js --reporter=dot",
     "test:sample-fonts": "npm run build && node ./scripts/run-font-sample.js --verify",
     "test:rust-compat": "cargo test -p nexus-webfont-core conversion::codec::tests && npm run build && node ./scripts/generate-oracle-manifest.js --verify",
     "test:tools": "vitest run tools/release-validator/src --reporter=dot",

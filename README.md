@@ -25,8 +25,11 @@ After that, the `wfc` command will be available in your terminal. Run `wfc
 ### Rust migration commands
 
 The Rust reimplementation is developed alongside the Node.js implementation.
-The Node.js CLI remains the production path during this migration. To verify the
-Rust workspace, install the pinned toolchain from `rust-toolchain.toml` and run:
+When a platform-specific native package is available, the npm `wfc` wrapper
+uses it automatically; otherwise it runs the existing Node.js CLI. See the
+[Rust CLI migration guide](./docs/rust-migration.md) for the current support
+matrix, release process, and publication prerequisites. To verify the Rust
+workspace, install the pinned toolchain from `rust-toolchain.toml` and run:
 
 ```bash
 cargo fmt --check

@@ -128,16 +128,19 @@ pub fn render_html_preview(
         format!("  <footer>\n    <a href=\"{license_file}\"><b>License:</b> {license_file}</a>\n  </footer>")
     });
 
+    let styles = PREVIEW_STYLES
+        .trim_end()
+        .replace("/* GLYPH_STYLES */", &glyph_styles);
+
     PREVIEW_TEMPLATE
         .replace("{{TITLE}}", &format!("{family_name} - Font Preview"))
         .replace("{{STYLESHEET}}", &format!("{}.css", escape_html(dir_name)))
-        .replace(
-            "{{STYLES}}",
-            &PREVIEW_STYLES.replace("/* GLYPH_STYLES */", &glyph_styles),
-        )
+        .replace("{{STYLES}}", &styles)
         .replace("{{FAMILY_NAME}}", &family_name)
         .replace("{{VARIANTS}}", &variant_sections)
         .replace("{{LICENSE}}", &license)
+        .trim_end()
+        .to_owned()
 }
 
 /// Generates a `[font-name].html` preview for one direct source family directory.
@@ -394,6 +397,7 @@ fn find_license_file(output_font_dir: &Path) -> io::Result<Option<String>> {
         Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(None),
         Err(error) => return Err(error),
     };
+    let mut license_files = Vec::new();
 
     for entry in entries {
         let entry = entry?;
@@ -401,10 +405,11 @@ fn find_license_file(output_font_dir: &Path) -> io::Result<Option<String>> {
         let is_node_license_file =
             is_license_file(&entry.path()) || entry.file_name() == ".gitkeep";
         if entry.file_type()?.is_file() && is_node_license_file {
-            return Ok(Some(entry.file_name().to_string_lossy().into_owned()));
+            license_files.push(entry.file_name().to_string_lossy().into_owned());
         }
     }
-    Ok(None)
+    license_files.sort();
+    Ok(license_files.into_iter().next())
 }
 
 fn directory_name(path: &Path) -> String {

@@ -9,3 +9,4 @@ pub mod filesystem;
 pub mod generation;
 pub mod maintenance;
 pub mod naming;
+pub mod pipeline;

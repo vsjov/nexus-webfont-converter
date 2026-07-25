@@ -253,6 +253,63 @@ jobs:
           cd nexus-webfont-converter
           npm publish --ignore-scripts --access public
 
+  #################################
+  #                               #
+  #   Build native CLI binaries   #
+  #                               #
+  #################################
+  release-native-binaries:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: rust
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linux-x64
+            binary: wfc
+            asset: wfc-linux-x64
+          - os: macos-13
+            target: darwin-x64
+            binary: wfc
+            asset: wfc-darwin-x64
+          - os: macos-14
+            target: darwin-arm64
+            binary: wfc
+            asset: wfc-darwin-arm64
+          - os: windows-latest
+            target: win32-x64
+            binary: wfc.exe
+            asset: wfc-win32-x64.exe
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Clone the nexus-webfont-converter repository
+        uses: actions/checkout@v6
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c
+        with:
+          toolchain: 1.89.0
+
+      - name: Cache Cargo dependencies and build output
+        uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae
+
+      - name: Build native wfc binary
+        run: cargo build --release --locked --package nexus-webfont-cli
+
+      - name: Stage native release asset
+        shell: bash
+        run: cp "target/release/${{ matrix.binary }}" "${RUNNER_TEMP}/${{ matrix.asset }}"
+
+      - name: Upload native release asset
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: ${{ runner.temp }}/${{ matrix.asset }}
+          if-no-files-found: error
+
   #############################
   #                           #
   #   Create GitHub release   #
@@ -260,7 +317,7 @@ jobs:
   #############################
   create-github-release:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    needs: publish-npm-package
+    needs: [publish-npm-package, release-native-binaries]
     permissions:
       contents: write
     runs-on: ubuntu-latest
@@ -295,6 +352,13 @@ jobs:
 
           echo "notes-file=$notes_file" >> "$GITHUB_OUTPUT"
 
+      - name: Download native release assets
+        uses: actions/download-artifact@v5
+        with:
+          pattern: wfc-*
+          path: ${{ runner.temp }}/wfc-assets
+          merge-multiple: false
+
       # Publish release
       # ---------------
       - name: Create GitHub release
@@ -306,4 +370,5 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --verify-tag \
             --title "$GITHUB_REF_NAME" \
-            --notes-file "${{ steps.release-notes.outputs.notes-file }}"
+            --notes-file "${{ steps.release-notes.outputs.notes-file }}" \
+            "$RUNNER_TEMP"/wfc-assets/*/*
