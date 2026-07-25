@@ -2,4 +2,4 @@
 
 mod safe_output;
 
-pub use safe_output::{OutputPathError, validate_output_path};
+pub use safe_output::{OutputPathError, validate_output_path, validate_output_root};

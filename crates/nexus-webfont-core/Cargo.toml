@@ -8,6 +8,8 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
+grass.workspace = true
+lightningcss.workspace = true
 oxifont-webfont.workspace = true
 rayon.workspace = true
 thiserror.workspace = true

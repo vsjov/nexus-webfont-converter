@@ -26,6 +26,12 @@ pub enum OutputPathError {
     /// Output is a filesystem root and is never a cleanup target.
     #[error("output directory cannot be a filesystem root")]
     OutputIsFilesystemRoot,
+    /// Output is not an existing directory suitable for maintenance operations.
+    #[error("output path is not a directory: {path}")]
+    OutputIsNotDirectory {
+        /// Path provided by the caller.
+        path: PathBuf,
+    },
     /// Input and output resolve to the same directory.
     #[error("output directory cannot be the same as the input directory")]
     SameDirectory,
@@ -66,6 +72,30 @@ pub fn validate_output_path(input: &Path, output: &Path) -> Result<(), OutputPat
     }
 
     Ok(())
+}
+
+/// Resolves an existing maintenance output root before it is mutated.
+///
+/// Maintenance commands have no input path for a containment comparison, but
+/// must never operate on a filesystem root. The returned canonical path also
+/// prevents a symlinked root from bypassing that guard.
+pub fn validate_output_root(output: &Path) -> Result<PathBuf, OutputPathError> {
+    let resolved_output = output
+        .canonicalize()
+        .map_err(|_| OutputPathError::OutputResolution {
+            path: output.to_path_buf(),
+        })?;
+
+    if is_filesystem_root(&resolved_output) {
+        return Err(OutputPathError::OutputIsFilesystemRoot);
+    }
+    if !resolved_output.is_dir() {
+        return Err(OutputPathError::OutputIsNotDirectory {
+            path: output.to_path_buf(),
+        });
+    }
+
+    Ok(resolved_output)
 }
 
 /// Resolves existing output segments while retaining a missing suffix.
@@ -118,9 +148,10 @@ fn is_filesystem_root(path: &Path) -> bool {
 #[cfg(test)]
 mod tests {
     use std::fs;
+    use std::path::Path;
     use std::time::{SystemTime, UNIX_EPOCH};
 
-    use super::{OutputPathError, validate_output_path};
+    use super::{OutputPathError, validate_output_path, validate_output_root};
 
     fn temporary_directory(name: &str) -> std::path::PathBuf {
         let unique = SystemTime::now()
@@ -161,6 +192,36 @@ mod tests {
         assert!(validate_output_path(&input, &output.join("missing/child")).is_ok());
 
         fs::remove_dir_all(root).expect("remove temporary directory");
+    }
+
+    #[test]
+    fn validate_output_root_resolves_directories_and_rejects_files() {
+        let root = temporary_directory("maintenance-output");
+        let output = root.join("output");
+        let file = root.join("output-file");
+        fs::create_dir_all(&output).expect("create output");
+        fs::write(&file, []).expect("create file");
+
+        assert_eq!(
+            validate_output_root(&output).expect("resolve output"),
+            output.canonicalize().expect("canonical output")
+        );
+        assert!(matches!(
+            validate_output_root(&file),
+            Err(OutputPathError::OutputIsNotDirectory { .. })
+        ));
+
+        fs::remove_dir_all(root).expect("remove temporary directory");
+    }
+
+    #[test]
+    fn validate_output_root_rejects_the_filesystem_root() {
+        let filesystem_root = Path::new("/");
+
+        assert!(matches!(
+            validate_output_root(filesystem_root),
+            Err(OutputPathError::OutputIsFilesystemRoot)
+        ));
     }
 
     #[cfg(unix)]
