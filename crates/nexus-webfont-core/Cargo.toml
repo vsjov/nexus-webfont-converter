@@ -1,0 +1,20 @@
+[package]
+name = "nexus-webfont-core"
+description = "Side-effect-free conversion primitives for Nexus Webfont Converter"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+oxifont-webfont.workspace = true
+thiserror.workspace = true
+walkdir.workspace = true
+
+[dev-dependencies]
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+
+[lints]
+workspace = true

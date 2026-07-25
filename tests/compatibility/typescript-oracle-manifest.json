@@ -1,0 +1,388 @@
+{
+  "schemaVersion": 1,
+  "conversion": {
+    "exitCode": 0
+  },
+  "sourceFonts": [
+    {
+      "path": "akrobat/Akrobat-Regular.otf",
+      "type": "source-font",
+      "byteLength": 55176,
+      "sha256": "38653cb6c043aaca469d39d96b40a751a46af148d07c377588c0737eb029cbd1",
+      "sfntTables": [
+        {
+          "tag": "CFF ",
+          "checksum": 1762438041
+        },
+        {
+          "tag": "GDEF",
+          "checksum": 213782032
+        },
+        {
+          "tag": "GPOS",
+          "checksum": 3902964518
+        },
+        {
+          "tag": "GSUB",
+          "checksum": 3043326024
+        },
+        {
+          "tag": "OS/2",
+          "checksum": 1716690509
+        },
+        {
+          "tag": "cmap",
+          "checksum": 3082965739
+        },
+        {
+          "tag": "head",
+          "checksum": 134168477
+        },
+        {
+          "tag": "hhea",
+          "checksum": 93324331
+        },
+        {
+          "tag": "hmtx",
+          "checksum": 3986111818
+        },
+        {
+          "tag": "maxp",
+          "checksum": 31674368
+        },
+        {
+          "tag": "name",
+          "checksum": 1558894598
+        },
+        {
+          "tag": "post",
+          "checksum": 4290248754
+        }
+      ]
+    },
+    {
+      "path": "ubuntu-mono/UbuntuMonoNerdFont-Regular.ttf",
+      "type": "source-font",
+      "byteLength": 2367832,
+      "sha256": "06492cae7c6b268ac5dccacfb0677e40f0f1377852b4d22689d4105ec862d7a4",
+      "sfntTables": [
+        {
+          "tag": "GDEF",
+          "checksum": 2377556968
+        },
+        {
+          "tag": "GPOS",
+          "checksum": 902713008
+        },
+        {
+          "tag": "GSUB",
+          "checksum": 4051127695
+        },
+        {
+          "tag": "OS/2",
+          "checksum": 2300247887
+        },
+        {
+          "tag": "PfEd",
+          "checksum": 383833931
+        },
+        {
+          "tag": "cmap",
+          "checksum": 3409178091
+        },
+        {
+          "tag": "cvt ",
+          "checksum": 189731406
+        },
+        {
+          "tag": "fpgm",
+          "checksum": 1992115396
+        },
+        {
+          "tag": "gasp",
+          "checksum": 4294901763
+        },
+        {
+          "tag": "glyf",
+          "checksum": 3085428235
+        },
+        {
+          "tag": "head",
+          "checksum": 269336857
+        },
+        {
+          "tag": "hhea",
+          "checksum": 101056322
+        },
+        {
+          "tag": "hmtx",
+          "checksum": 2968101536
+        },
+        {
+          "tag": "loca",
+          "checksum": 327773992
+        },
+        {
+          "tag": "maxp",
+          "checksum": 884871825
+        },
+        {
+          "tag": "name",
+          "checksum": 3225977459
+        },
+        {
+          "tag": "post",
+          "checksum": 3144455373
+        },
+        {
+          "tag": "prep",
+          "checksum": 2453548964
+        }
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "akrobat/akrobat-regular.woff",
+      "type": "font",
+      "byteLength": 33548,
+      "signature": "wOFF",
+      "woffTables": [
+        {
+          "tag": "CFF ",
+          "checksum": 1762438041
+        },
+        {
+          "tag": "GDEF",
+          "checksum": 213782032
+        },
+        {
+          "tag": "GPOS",
+          "checksum": 3902964518
+        },
+        {
+          "tag": "GSUB",
+          "checksum": 3043326024
+        },
+        {
+          "tag": "OS/2",
+          "checksum": 1716690509
+        },
+        {
+          "tag": "cmap",
+          "checksum": 3082965739
+        },
+        {
+          "tag": "head",
+          "checksum": 134168477
+        },
+        {
+          "tag": "hhea",
+          "checksum": 93324331
+        },
+        {
+          "tag": "hmtx",
+          "checksum": 3986111818
+        },
+        {
+          "tag": "maxp",
+          "checksum": 31674368
+        },
+        {
+          "tag": "name",
+          "checksum": 1558894598
+        },
+        {
+          "tag": "post",
+          "checksum": 4290248754
+        }
+      ]
+    },
+    {
+      "path": "akrobat/akrobat-regular.woff2",
+      "type": "font",
+      "byteLength": 29848,
+      "signature": "wOF2",
+      "numberOfTables": 12
+    },
+    {
+      "path": "akrobat/akrobat.css",
+      "type": "text-or-license",
+      "byteLength": 169,
+      "sha256": "53212934a2c12769d562781781303a194a445e7cd102bf8f37a410dac620b7c0"
+    },
+    {
+      "path": "akrobat/akrobat.html",
+      "type": "text-or-license",
+      "byteLength": 4365,
+      "sha256": "a8886ec5f469d9c330ce4e63a0775ee4c7536d7061b687af22c73ff2a4536afd"
+    },
+    {
+      "path": "akrobat/akrobat.scss",
+      "type": "text-or-license",
+      "byteLength": 613,
+      "sha256": "93315f16a9429f370a82e9725f6e43e8147a928d54fb6072d44159a3c431fa60"
+    },
+    {
+      "path": "akrobat/EULA Free Font License Ver. 2.0.pdf",
+      "type": "text-or-license",
+      "byteLength": 128709,
+      "sha256": "b12d4058252c932c99e0af87b4b2e09c4d03411de81e0397944d30fe8bc583a6"
+    },
+    {
+      "path": "ubuntu-mono/LICENCE-FAQ.txt",
+      "type": "text-or-license",
+      "byteLength": 8980,
+      "sha256": "58e429f3407145156a94a786b4f345c30ba97253ee17cce3f2a2bdafa9308b7a"
+    },
+    {
+      "path": "ubuntu-mono/LICENCE.txt",
+      "type": "text-or-license",
+      "byteLength": 4673,
+      "sha256": "2f0015108d68627bd788d313f529c21ff4da2c2c42a5e1f3883acc83480f9002"
+    },
+    {
+      "path": "ubuntu-mono/README.md",
+      "type": "text-or-license",
+      "byteLength": 2397,
+      "sha256": "7c9b693749695df12286e79b3e6e8c7ac9dc469c695d1002a7fdd6f2af500aa0"
+    },
+    {
+      "path": "ubuntu-mono/ubuntu-mono-nerd-font-regular.woff",
+      "type": "font",
+      "byteLength": 1325824,
+      "signature": "wOFF",
+      "woffTables": [
+        {
+          "tag": "GDEF",
+          "checksum": 2377556968
+        },
+        {
+          "tag": "GPOS",
+          "checksum": 902713008
+        },
+        {
+          "tag": "GSUB",
+          "checksum": 4051127695
+        },
+        {
+          "tag": "OS/2",
+          "checksum": 2300247887
+        },
+        {
+          "tag": "PfEd",
+          "checksum": 383833931
+        },
+        {
+          "tag": "cmap",
+          "checksum": 3409178091
+        },
+        {
+          "tag": "cvt ",
+          "checksum": 189731406
+        },
+        {
+          "tag": "fpgm",
+          "checksum": 1992115396
+        },
+        {
+          "tag": "gasp",
+          "checksum": 4294901763
+        },
+        {
+          "tag": "glyf",
+          "checksum": 3085428235
+        },
+        {
+          "tag": "head",
+          "checksum": 269336857
+        },
+        {
+          "tag": "hhea",
+          "checksum": 101056322
+        },
+        {
+          "tag": "hmtx",
+          "checksum": 2968101536
+        },
+        {
+          "tag": "loca",
+          "checksum": 327773992
+        },
+        {
+          "tag": "maxp",
+          "checksum": 884871825
+        },
+        {
+          "tag": "name",
+          "checksum": 3225977459
+        },
+        {
+          "tag": "post",
+          "checksum": 3144455373
+        },
+        {
+          "tag": "prep",
+          "checksum": 2453548964
+        }
+      ]
+    },
+    {
+      "path": "ubuntu-mono/ubuntu-mono-nerd-font-regular.woff2",
+      "type": "font",
+      "byteLength": 1018568,
+      "signature": "wOF2",
+      "numberOfTables": 18
+    },
+    {
+      "path": "ubuntu-mono/ubuntu-mono.css",
+      "type": "text-or-license",
+      "byteLength": 201,
+      "sha256": "28d302ba5f0fe483cb10b69401252396fb0d82bb17a6fc372296e343e466a292"
+    },
+    {
+      "path": "ubuntu-mono/ubuntu-mono.html",
+      "type": "text-or-license",
+      "byteLength": 4377,
+      "sha256": "3d1bdc4b0d2b9c738d93d04af3f984b9b0ba2ebfbd456f36e24ef26ab27f7a35"
+    },
+    {
+      "path": "ubuntu-mono/ubuntu-mono.scss",
+      "type": "text-or-license",
+      "byteLength": 631,
+      "sha256": "95c08b3e5026e015c300dca854492a61a3a1b5e43f91da9b1a3e583dc6da3bdb"
+    }
+  ],
+  "scenarios": {
+    "help": {
+      "exitCode": 0,
+      "stderr": "",
+      "stdout": "\nwfc - Nexus Webfont Converter v1.2.0\n\nUsage:\n  wfc --in <input-dir> --out <output-dir>\n  wfc --out <output-dir> <maintenance-flag>\n\nOptions:\n  --in   Path to the directory containing TTF/OTF font files (required for conversion)\n  --out  Path to the output directory (required)\n         Cannot be empty, the same as --in, or a subfolder of --in.\n\nMaintenance flags (only --out required, no --in needed):\n  --compile-css    Compile SCSS to minified CSS in the output directory\n  --recompile-html Re-generate HTML preview pages from existing SCSS entries\n  --remove-unused  Delete .woff/.woff2 files not referenced in the SCSS\n  --sync           Run --compile-css, --recompile-html and --remove-unused in sequence\n\nOther:\n  --version  Show version number\n  --help     Show this help message\n\nExamples:\n  wfc --in ./fonts/source --out ./fonts/web\n  wfc --out ./fonts/web --compile-css\n  wfc --out ./fonts/web --sync\n\n"
+    },
+    "version": {
+      "exitCode": 0,
+      "stderr": "",
+      "stdout": "1.2.0\n"
+    },
+    "unknownFlag": {
+      "exitCode": 1,
+      "stderr": "Error: Unknown option '--unknown'\n",
+      "stdout": ""
+    },
+    "missingOutput": {
+      "exitCode": 1,
+      "stderr": "Error: --out is required. Use --help for usage information.\n",
+      "stdout": ""
+    },
+    "nestedOutput": {
+      "exitCode": 1,
+      "stderr": "Error: Output directory cannot be a subfolder of the input directory.\n",
+      "stdout": ""
+    },
+    "maintenanceInputNotice": {
+      "exitCode": 0,
+      "stderr": "Notice: --in is ignored when using maintenance flags.\n",
+      "stdout": ""
+    }
+  }
+}

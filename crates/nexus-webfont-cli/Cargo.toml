@@ -1,0 +1,18 @@
+[package]
+name = "nexus-webfont-cli"
+description = "Native command-line interface for Nexus Webfont Converter"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[[bin]]
+name = "wfc"
+path = "src/main.rs"
+
+[dependencies]
+nexus-webfont-core = { path = "../nexus-webfont-core", version = "1.2.0" }
+
+[lints]
+workspace = true
