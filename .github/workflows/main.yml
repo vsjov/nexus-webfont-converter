@@ -105,6 +105,63 @@ jobs:
           echo "::error::Install or build output differs from committed files. Run the checks locally and commit the expected changes."
           exit 1
 
+  ############################
+  #                          #
+  #   Rust workspace checks  #
+  #                          #
+  ############################
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone the nexus-webfont-converter repository
+        uses: actions/checkout@v6
+        with:
+          path: nexus-webfont-converter
+
+      - name: Install NodeJS dependencies for compatibility checks
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Install npm dependencies
+        working-directory: nexus-webfont-converter
+        run: npm ci --ignore-scripts --loglevel error
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@2c7215f132e9ebf062739d9130488b56d53c060c
+        with:
+          toolchain: 1.89.0
+          components: clippy,rustfmt
+
+      - name: Cache Cargo dependencies and build output
+        uses: Swatinem/rust-cache@42dc69e1aa15d09112580998cf2ef0119e2e91ae
+        with:
+          workspaces: nexus-webfont-converter
+
+      - name: Check Rust formatting
+        working-directory: nexus-webfont-converter
+        run: cargo fmt --check
+
+      - name: Lint Rust workspace
+        working-directory: nexus-webfont-converter
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+
+      - name: Test Rust workspace
+        working-directory: nexus-webfont-converter
+        run: cargo test --workspace --all-features
+
+      - name: Verify Rust codec against the TypeScript oracle
+        working-directory: nexus-webfont-converter
+        run: npm run test:rust-compat
+
+      - name: Install Cargo Deny
+        run: cargo install cargo-deny --version 0.20.2 --locked
+
+      - name: Enforce dependency policy
+        working-directory: nexus-webfont-converter
+        run: cargo deny check
+
   ###########################
   #                         #
   #   Publish NPM package   #

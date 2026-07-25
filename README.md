@@ -22,6 +22,19 @@ npm install -g .
 After that, the `wfc` command will be available in your terminal. Run `wfc
 --help` to see usage instructions.
 
+### Rust migration commands
+
+The Rust reimplementation is developed alongside the Node.js implementation.
+The Node.js CLI remains the production path during this migration. To verify the
+Rust workspace, install the pinned toolchain from `rust-toolchain.toml` and run:
+
+```bash
+cargo fmt --check
+cargo clippy --workspace --all-targets --all-features -- -D warnings
+cargo test --workspace --all-features
+npm run test:rust-compat
+```
+
 ## What it does
 Given a directory of **TTF** or **OTF** source fonts, the converter:
 
