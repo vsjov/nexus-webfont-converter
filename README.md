@@ -38,6 +38,9 @@ cargo test --workspace --all-features
 npm run test:rust-compat
 ```
 
+See [the testing guide](./docs/testing.md) for native CLI smoke tests,
+maintenance commands, compatibility checks, and npm wrapper verification.
+
 ## What it does
 Given a directory of **TTF** or **OTF** source fonts, the converter:
 

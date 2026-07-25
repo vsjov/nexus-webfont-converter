@@ -12,6 +12,7 @@
     "bin/",
     "dist/",
     "docs/rust-migration.md",
+    "docs/testing.md",
     "README.md",
     "LICENSE"
   ],
