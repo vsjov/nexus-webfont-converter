@@ -500,6 +500,11 @@ mod tests {
         assert!(html.contains(
             "<a href=\"LICENSE &amp; TERMS.txt\"><b>License:</b> LICENSE &amp; TERMS.txt</a>"
         ));
+        assert!(html.contains(
+            "  <style>\n    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }"
+        ));
+        assert!(html.contains("    footer a:hover { color: #444; }\n  </style>"));
+        assert!(!html.contains("*::before,\n*::after"));
     }
 
     #[test]
