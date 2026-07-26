@@ -4,13 +4,15 @@ use std::collections::BTreeMap;
 use std::io::{self, IsTerminal, Write};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use nexus_webfont_core::progress::{ProgressEvent, ProgressObserver};
 use terminal_size::{Height, terminal_size};
 
 const BAR_WIDTH: usize = 40;
 const DURATION_WIDTH: usize = 6;
+/// Caps terminal writes below the 60 FPS threshold while coalescing worker events.
+const FRAME_INTERVAL: Duration = Duration::from_millis(17);
 
 /// Renders native pipeline events in the same overall and worker-row layout as Node.
 pub struct NativeProgressRenderer {
@@ -29,6 +31,7 @@ struct ProgressState {
     show_workers: bool,
     last_lines: Vec<String>,
     rendered_lines: usize,
+    dirty: bool,
 }
 
 struct WorkerState {
@@ -52,6 +55,7 @@ impl NativeProgressRenderer {
             show_workers,
             last_lines: Vec::new(),
             rendered_lines: 0,
+            dirty: true,
         }));
         let redraw_active = Arc::new(AtomicBool::new(interactive));
         if interactive {
@@ -77,6 +81,7 @@ impl NativeProgressRenderer {
         state.completed = state.total;
         state.label = label.to_owned();
         state.workers.clear();
+        mark_dirty(&mut state);
         render(&mut state);
         if state.interactive {
             let _ = io::stderr().write_all(b"\x1b[?25h");
@@ -98,14 +103,15 @@ fn spawn_redraw_thread(
     }
     Some(std::thread::spawn(move || {
         while redraw_active.load(Ordering::Acquire) {
-            std::thread::sleep(std::time::Duration::from_millis(100));
+            std::thread::sleep(FRAME_INTERVAL);
             if !redraw_active.load(Ordering::Acquire) {
                 break;
             }
             let mut state = lock_state(&state);
             if !state.workers.is_empty() {
-                render(&mut state);
+                mark_dirty(&mut state);
             }
+            render(&mut state);
         }
     }))
 }
@@ -173,7 +179,7 @@ impl ProgressObserver for NativeProgressRenderer {
                 &format!("Generated {}", green(&display_name(&output_path))),
             ),
         }
-        render(&mut state);
+        mark_dirty(&mut state);
     }
 }
 
@@ -184,6 +190,11 @@ fn lock_state(state: &Mutex<ProgressState>) -> std::sync::MutexGuard<'_, Progres
 fn complete_step(state: &mut ProgressState, label: &str) {
     state.completed = state.completed.saturating_add(1).min(state.total);
     state.label = label.to_owned();
+}
+
+/// Marks a changed progress state for the next coalesced terminal frame.
+fn mark_dirty(state: &mut ProgressState) {
+    state.dirty = true;
 }
 
 fn display_name(path: &std::path::Path) -> String {
@@ -202,26 +213,42 @@ fn can_show_worker_rows(interactive: bool, rows: Option<usize>, worker_capacity:
 }
 
 fn render(state: &mut ProgressState) {
-    if !state.interactive {
+    if !state.interactive || !state.dirty {
         return;
     }
     let lines = render_lines(state);
     if lines == state.last_lines {
+        state.dirty = false;
         return;
     }
     let mut stderr = io::stderr().lock();
-    if state.rendered_lines > 0 {
-        let _ = write!(stderr, "\x1b[{}A", state.rendered_lines);
-    }
-    for line in &lines {
-        let _ = write!(stderr, "\r\x1b[2K{line}\n");
-    }
-    for _ in lines.len()..state.rendered_lines {
-        let _ = write!(stderr, "\r\x1b[2K\n");
-    }
+    render_to(&mut stderr, state, &lines);
     let _ = stderr.flush();
-    state.rendered_lines = state.rendered_lines.max(lines.len());
     state.last_lines = lines;
+    state.dirty = false;
+}
+
+/// Writes one complete terminal frame and collapses any rows removed from it.
+fn render_to(output: &mut impl Write, state: &mut ProgressState, lines: &[String]) {
+    if state.rendered_lines > 0 {
+        let _ = write!(output, "\x1b[{}A", state.rendered_lines);
+    }
+    for line in lines {
+        let _ = write!(output, "\r\x1b[2K{line}\n");
+    }
+    let removed_lines = removed_line_count(state.rendered_lines, lines.len());
+    for _ in 0..removed_lines {
+        let _ = write!(output, "\r\x1b[2K\n");
+    }
+    if removed_lines > 0 {
+        let _ = write!(output, "\x1b[{removed_lines}A");
+    }
+    state.rendered_lines = lines.len();
+}
+
+/// Returns how many stale rows must be cleared after a smaller frame is written.
+fn removed_line_count(previous_lines: usize, current_lines: usize) -> usize {
+    previous_lines.saturating_sub(current_lines)
 }
 
 fn render_lines(state: &ProgressState) -> Vec<String> {
@@ -300,7 +327,28 @@ impl PadWidth for String {
 
 #[cfg(test)]
 mod tests {
-    use super::{DURATION_WIDTH, can_show_worker_rows, format_elapsed_duration};
+    use std::collections::BTreeMap;
+    use std::time::Duration;
+
+    use super::{
+        DURATION_WIDTH, FRAME_INTERVAL, ProgressState, can_show_worker_rows,
+        format_elapsed_duration, mark_dirty, render_to,
+    };
+
+    fn progress_state(rendered_lines: usize) -> ProgressState {
+        ProgressState {
+            total: 1,
+            completed: 0,
+            label: "Starting...".to_owned(),
+            worker_width: 1,
+            workers: BTreeMap::new(),
+            interactive: true,
+            show_workers: true,
+            last_lines: Vec::new(),
+            rendered_lines,
+            dirty: false,
+        }
+    }
 
     #[test]
     fn format_elapsed_duration_uses_fixed_width_adaptive_units() {
@@ -317,5 +365,29 @@ mod tests {
         assert!(!can_show_worker_rows(true, Some(32), 32));
         assert!(can_show_worker_rows(true, Some(33), 32));
         assert!(!can_show_worker_rows(false, Some(100), 32));
+    }
+
+    #[test]
+    fn render_to_collapses_removed_worker_rows() {
+        let mut state = progress_state(3);
+        let mut output = Vec::new();
+
+        render_to(&mut output, &mut state, &["overall".to_owned()]);
+
+        assert_eq!(state.rendered_lines, 1);
+        assert_eq!(
+            String::from_utf8(output).expect("rendered terminal frame"),
+            "\x1b[3A\r\x1b[2Koverall\n\r\x1b[2K\n\r\x1b[2K\n\x1b[2A"
+        );
+    }
+
+    #[test]
+    fn progress_events_are_coalesced_below_sixty_frames_per_second() {
+        let mut state = progress_state(0);
+
+        mark_dirty(&mut state);
+
+        assert!(state.dirty);
+        assert!(FRAME_INTERVAL >= Duration::from_millis(1_000 / 60));
     }
 }
