@@ -6,5 +6,5 @@ mod convert_directory;
 pub use codec::{CodecError, decode_font, encode_font};
 pub use convert_directory::{
     ConversionFailure, ConversionReport, ConversionResult, ConversionStatus, ConvertDirectoryError,
-    ConvertDirectoryOptions, convert_fonts_in_dir,
+    ConvertDirectoryOptions, convert_fonts_in_dir, convert_fonts_in_dir_with_progress,
 };

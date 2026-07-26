@@ -10,3 +10,4 @@ pub mod generation;
 pub mod maintenance;
 pub mod naming;
 pub mod pipeline;
+pub mod progress;

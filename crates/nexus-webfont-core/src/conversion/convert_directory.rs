@@ -14,6 +14,7 @@ use thiserror::Error;
 use crate::discovery::scan_input_tree;
 use crate::domain::OutputFormat;
 use crate::filesystem::{OutputPathError, validate_output_path};
+use crate::progress::{ProgressEvent, ProgressObserver};
 
 use super::encode_font;
 
@@ -158,6 +159,20 @@ pub fn convert_fonts_in_dir(
     input_dir: &Path,
     options: &ConvertDirectoryOptions,
 ) -> Result<ConversionReport, ConvertDirectoryError> {
+    convert_fonts_in_dir_with_progress(input_dir, options, None)
+}
+
+/// Converts all source fonts below an input directory and reports worker events.
+///
+/// # Errors
+///
+/// Returns the same errors as [`convert_fonts_in_dir`]. Progress observation does
+/// not alter conversion ordering, output content, or error handling.
+pub fn convert_fonts_in_dir_with_progress(
+    input_dir: &Path,
+    options: &ConvertDirectoryOptions,
+    progress: Option<&dyn ProgressObserver>,
+) -> Result<ConversionReport, ConvertDirectoryError> {
     if options.worker_count == 0 {
         return Err(ConvertDirectoryError::InvalidWorkerCount);
     }
@@ -179,7 +194,7 @@ pub fn convert_fonts_in_dir(
     let task_reports = pool.install(|| {
         tasks
             .par_iter()
-            .map(|task| convert_task(input_dir, task))
+            .map(|task| convert_task(input_dir, task, progress))
             .collect::<Vec<_>>()
     });
     let mut report = ConversionReport {
@@ -306,21 +321,58 @@ fn select_preferred_candidate(candidates: &[ConversionCandidate]) -> &Conversion
 }
 
 /// Converts one source read into all requested output formats.
-fn convert_task(input_dir: &Path, task: &ConversionTask) -> TaskReport {
+fn convert_task(
+    input_dir: &Path,
+    task: &ConversionTask,
+    progress: Option<&dyn ProgressObserver>,
+) -> TaskReport {
+    let slot = rayon::current_thread_index().unwrap_or_default() + 1;
+    let source_name = display_source_name(&task.source_path);
+    report_progress(
+        progress,
+        ProgressEvent::WorkerStarted {
+            slot,
+            source_name: source_name.clone(),
+        },
+    );
     let source_file = input_dir.join(&task.source_path);
     let source = match fs::read(&source_file) {
         Ok(source) => source,
-        Err(error) => return task_read_failure(task, error),
+        Err(error) => {
+            let report = task_read_failure(task, error);
+            for output in &task.outputs {
+                report_progress(
+                    progress,
+                    ProgressEvent::ConversionFinished {
+                        slot,
+                        source_name: source_name.clone(),
+                        output_name: display_source_name(&output.output_path),
+                        succeeded: false,
+                    },
+                );
+            }
+            report_progress(progress, ProgressEvent::WorkerFinished { slot });
+            return report;
+        }
     };
     let mut report = TaskReport::default();
 
     for output in &task.outputs {
+        report_progress(
+            progress,
+            ProgressEvent::WorkerStatus {
+                slot,
+                source_name: source_name.clone(),
+                format: output.format.extension().to_ascii_uppercase(),
+            },
+        );
         let conversion = encode_font(&source, output.format)
             .map_err(|error| error.to_string())
             .and_then(|font| {
                 write_atomically(&output.output_path, &font).map_err(|error| error.to_string())
             });
 
+        let succeeded = conversion.is_ok();
         match conversion {
             Ok(()) => report.results.push(ConversionResult {
                 source_path: task.source_path.clone(),
@@ -343,9 +395,26 @@ fn convert_task(input_dir: &Path, task: &ConversionTask) -> TaskReport {
                 });
             }
         }
+        report_progress(
+            progress,
+            ProgressEvent::ConversionFinished {
+                slot,
+                source_name: source_name.clone(),
+                output_name: display_source_name(&output.output_path),
+                succeeded,
+            },
+        );
     }
 
+    report_progress(progress, ProgressEvent::WorkerFinished { slot });
     report
+}
+
+/// Delivers an event only when the caller requested progress observation.
+fn report_progress(progress: Option<&dyn ProgressObserver>, event: ProgressEvent) {
+    if let Some(progress) = progress {
+        progress.on_progress(event);
+    }
 }
 
 /// Builds a per-format failure result when one source cannot be read.
@@ -608,15 +677,17 @@ fn compare_failure(left: &ConversionFailure, right: &ConversionFailure) -> std::
 mod tests {
     use std::fs;
     use std::path::Path;
+    use std::sync::Mutex;
     use std::time::{SystemTime, UNIX_EPOCH};
 
     use super::{
         ConversionCandidate, ConversionOutput, ConversionStatus, ConversionTask,
         ConvertDirectoryError, ConvertDirectoryOptions, convert_fonts_in_dir,
-        normalize_destination_path, reserve_destinations, select_preferred_candidate,
-        write_atomically_with_counter,
+        convert_fonts_in_dir_with_progress, normalize_destination_path, reserve_destinations,
+        select_preferred_candidate, write_atomically_with_counter,
     };
     use crate::domain::OutputFormat;
+    use crate::progress::{ProgressEvent, ProgressObserver};
 
     const TTF: &[u8] = include_bytes!(concat!(
         env!("CARGO_MANIFEST_DIR"),
@@ -626,6 +697,20 @@ mod tests {
         env!("CARGO_MANIFEST_DIR"),
         "/../../fonts-sample/input/akrobat/Akrobat-Regular.otf"
     ));
+
+    #[derive(Default)]
+    struct RecordingProgress {
+        events: Mutex<Vec<ProgressEvent>>,
+    }
+
+    impl ProgressObserver for RecordingProgress {
+        fn on_progress(&self, event: ProgressEvent) {
+            self.events
+                .lock()
+                .expect("record progress event")
+                .push(event);
+        }
+    }
 
     #[test]
     fn convert_fonts_in_dir_writes_both_formats_with_one_worker() {
@@ -658,6 +743,37 @@ mod tests {
                 .starts_with_bytes(b"wOF2")
         );
         assert_no_temporary_files(&output);
+
+        remove_directory(root);
+    }
+
+    #[test]
+    fn convert_fonts_in_dir_reports_a_worker_lifecycle() {
+        let root = temporary_directory("progress-events");
+        let input = root.join("input");
+        let output = root.join("output");
+        write_file(&input.join("family/Family-Regular.ttf"), TTF);
+        let mut options = ConvertDirectoryOptions::new(&output);
+        options.formats = vec![OutputFormat::Woff];
+        options.worker_count = 1;
+        let progress = RecordingProgress::default();
+
+        convert_fonts_in_dir_with_progress(&input, &options, Some(&progress))
+            .expect("convert font with progress");
+
+        let events = progress.events.lock().expect("read progress events");
+        assert!(matches!(
+            events.as_slice(),
+            [
+                ProgressEvent::WorkerStarted { source_name, .. },
+                ProgressEvent::WorkerStatus { source_name: status_name, format, .. },
+                ProgressEvent::ConversionFinished { source_name: result_name, succeeded: true, .. },
+                ProgressEvent::WorkerFinished { .. },
+            ] if source_name == "Family-Regular.ttf"
+                && status_name == source_name
+                && format == "WOFF"
+                && result_name == source_name
+        ));
 
         remove_directory(root);
     }

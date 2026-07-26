@@ -2,16 +2,22 @@
 
 //! Native command-line interface for the conversion and maintenance workflows.
 
+mod progress;
+
 use std::env;
 use std::error::Error;
 use std::fmt;
+use std::io::IsTerminal;
 use std::path::{Path, PathBuf};
 
 use clap::{CommandFactory, Parser};
+use nexus_webfont_core::discovery::scan_input_tree;
 use nexus_webfont_core::filesystem::validate_output_root;
 use nexus_webfont_core::generation::{compile_css_files, regenerate_font_preview_html};
 use nexus_webfont_core::maintenance::{remove_unused_fonts, sync_output};
-use nexus_webfont_core::pipeline::{PipelineOptions, run_pipeline};
+use nexus_webfont_core::pipeline::{PipelineOptions, run_pipeline_with_progress};
+
+use crate::progress::NativeProgressRenderer;
 
 /// Converts font directories and maintains generated webfont artifacts.
 #[derive(Debug, Parser)]
@@ -119,12 +125,61 @@ fn run_cli(cli: Cli) -> Result<(), Box<dyn Error>> {
         ))));
     }
 
-    let report = run_pipeline(&input, &PipelineOptions::new(&output))?;
+    println!(
+        "\n{} {}",
+        stdout_color("1", "nexus-webfont-converter"),
+        stdout_color("2", &format!("v{}", env!("CARGO_PKG_VERSION")))
+    );
+    println!(
+        "{}\n",
+        stdout_color(
+            "2",
+            "Converter for desktop font files (TTF, OTF) to web font formats (WOFF, WOFF2)"
+        )
+    );
+
+    let pipeline_options = PipelineOptions::new(&output);
+    let input_scan = scan_input_tree(&input)?;
+    let total = pipeline_total(&input_scan, pipeline_options.formats.len());
+    let progress = NativeProgressRenderer::new(total, pipeline_options.worker_count);
+    let report = run_pipeline_with_progress(&input, &pipeline_options, Some(&progress));
+    progress.finish(if report.is_ok() { "Done" } else { "Failed" });
+    let report = report?;
     for warning in &report.conversion.warnings {
-        eprintln!("Warning: {warning}");
+        eprintln!("{} {warning}", stderr_color("33", "Warning:"));
     }
-    println!("Saved to: {}", output.display());
+    println!(
+        "Saved to: {}",
+        stdout_color("35", &output.display().to_string())
+    );
     Ok(())
+}
+
+fn stdout_color(code: &str, value: &str) -> String {
+    color(code, value, std::io::stdout().is_terminal())
+}
+
+fn stderr_color(code: &str, value: &str) -> String {
+    color(code, value, std::io::stderr().is_terminal())
+}
+
+fn color(code: &str, value: &str, enabled: bool) -> String {
+    if enabled {
+        format!("\x1b[{code}m{value}\x1b[0m")
+    } else {
+        value.to_owned()
+    }
+}
+
+fn pipeline_total(
+    scan: &nexus_webfont_core::discovery::InputTreeScan,
+    format_count: usize,
+) -> usize {
+    1 + scan.font_files.len() * format_count
+        + scan.license_files.len()
+        + scan.generation_directories.len()
+        + 1
+        + scan.generation_directories.len()
 }
 
 fn is_maintenance_mode(cli: &Cli) -> bool {

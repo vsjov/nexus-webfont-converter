@@ -7,7 +7,8 @@ use std::path::{Path, PathBuf};
 use thiserror::Error;
 
 use crate::conversion::{
-    ConversionReport, ConvertDirectoryError, ConvertDirectoryOptions, convert_fonts_in_dir,
+    ConversionReport, ConvertDirectoryError, ConvertDirectoryOptions,
+    convert_fonts_in_dir_with_progress,
 };
 use crate::domain::OutputFormat;
 use crate::filesystem::{OutputPathError, validate_output_path};
@@ -15,6 +16,7 @@ use crate::generation::{
     CssCompilationError, compile_css_files, generate_font_face_scss, generate_font_preview_html,
 };
 use crate::maintenance::{MaintenanceError, copy_license_files};
+use crate::progress::{ProgressEvent, ProgressObserver};
 
 /// Options controlling a complete conversion pipeline run.
 #[derive(Clone, Debug)]
@@ -120,7 +122,22 @@ pub fn run_pipeline(
     input_dir: &Path,
     options: &PipelineOptions,
 ) -> Result<PipelineReport, PipelineError> {
+    run_pipeline_with_progress(input_dir, options, None)
+}
+
+/// Runs the conversion pipeline while delivering optional lifecycle events.
+///
+/// # Errors
+///
+/// Returns the same errors as [`run_pipeline`]. Observing progress does not
+/// change pipeline ordering, artifacts, warnings, or failure propagation.
+pub fn run_pipeline_with_progress(
+    input_dir: &Path,
+    options: &PipelineOptions,
+    progress: Option<&dyn ProgressObserver>,
+) -> Result<PipelineReport, PipelineError> {
     clean_output_directory(input_dir, &options.output_dir)?;
+    report_progress(progress, ProgressEvent::OutputCleaned);
 
     let conversion_options = ConvertDirectoryOptions {
         output_dir: options.output_dir.clone(),
@@ -128,7 +145,8 @@ pub fn run_pipeline(
         worker_count: options.worker_count,
     };
     let (conversion, license_files) = std::thread::scope(|scope| {
-        let conversion = scope.spawn(|| convert_fonts_in_dir(input_dir, &conversion_options));
+        let conversion = scope
+            .spawn(|| convert_fonts_in_dir_with_progress(input_dir, &conversion_options, progress));
         let licenses = scope.spawn(|| copy_license_files(input_dir, &options.output_dir));
         (conversion.join(), licenses.join())
     });
@@ -136,11 +154,36 @@ pub fn run_pipeline(
     let license_files = license_files
         .map_err(|_| PipelineError::ConcurrentStagePanicked)?
         .map_err(|source| PipelineError::LicenseCopy { source })?;
+    for output_path in &license_files {
+        report_progress(
+            progress,
+            ProgressEvent::LicenseCopied {
+                output_path: output_path.clone(),
+            },
+        );
+    }
     let scss_files = generate_font_face_scss(input_dir, &options.output_dir)
         .map_err(|source| PipelineError::Scss { source })?;
+    for output_path in &scss_files {
+        report_progress(
+            progress,
+            ProgressEvent::ScssGenerated {
+                output_path: output_path.clone(),
+            },
+        );
+    }
     let css_files = compile_css_files(&options.output_dir)?;
+    report_progress(progress, ProgressEvent::CssCompiled);
     let html_files = generate_font_preview_html(input_dir, &options.output_dir)
         .map_err(|source| PipelineError::Html { source })?;
+    for output_path in &html_files {
+        report_progress(
+            progress,
+            ProgressEvent::HtmlGenerated {
+                output_path: output_path.clone(),
+            },
+        );
+    }
 
     Ok(PipelineReport {
         conversion,
@@ -149,6 +192,13 @@ pub fn run_pipeline(
         css_files,
         html_files,
     })
+}
+
+/// Delivers an event only when the caller requested progress observation.
+fn report_progress(progress: Option<&dyn ProgressObserver>, event: ProgressEvent) {
+    if let Some(progress) = progress {
+        progress.on_progress(event);
+    }
 }
 
 /// Clears an output directory after validating it against the input tree.
