@@ -32,12 +32,44 @@ export type ProgressReporter = {
     tick: (label: string) => void;
 };
 /**
+ * Returns whether the terminal can display the overall bar and every worker row.
+ *
+ * @param workerCount - Maximum number of concurrently active conversion workers
+ * @returns `true` when the full worker table fits in the active terminal
+ */
+export declare const canShowWorkerRows: (workerCount: number) => boolean;
+/**
+ * Determines whether a terminal can reserve rows for the complete worker table.
+ *
+ * @param workerCount - Maximum number of concurrently active conversion workers
+ * @param isTTY - Whether the output stream is an interactive terminal
+ * @param rows - Terminal height when available
+ * @returns `true` when the overall row and every worker row fit
+ */
+export declare const canShowWorkerRowsForTerminal: (workerCount: number, isTTY: boolean | undefined, rows: number | undefined) => boolean;
+/**
+ * Formats a worker slot using the width of the configured worker pool.
+ *
+ * @param slot - One-based worker slot number
+ * @param workerCount - Maximum number of concurrently active workers
+ * @returns Right-aligned worker slot text
+ */
+export declare const formatWorkerSlot: (slot: number, workerCount: number) => string;
+/**
+ * Formats elapsed seconds into a fixed-width, compact duration cell.
+ *
+ * @param durationSeconds - Elapsed duration measured in seconds
+ * @returns A six-character duration using seconds, minutes, hours, or days
+ */
+export declare const formatElapsedDuration: (durationSeconds: number) => string;
+/**
  * Creates a `cli-progress` bar pre-configured for the conversion pipeline.
  *
  * @param total - Total number of steps the pipeline will execute
+ * @param workerCount - Maximum number of concurrently active conversion workers
  * @returns A reporter with `tick`, `warn`, and `stop` methods
  */
-declare const createProgress: (total: number) => ProgressReporter & {
+declare const createProgress: (total: number, workerCount?: number) => ProgressReporter & {
     stop: (finalLabel?: string) => void;
 };
 export default createProgress;

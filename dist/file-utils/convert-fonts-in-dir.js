@@ -257,6 +257,7 @@ const groupCandidatesBySource = (candidates, onStatus, onWorkerStart, onWorkerSt
  * @param options.outputDir - Override destination directory (default: same as source file)
  * @param options.formats - Which formats to produce (default: `['woff', 'woff2']`)
  * @param options.sourceFontFiles - Pre-scanned source font paths relative to `dirPath`
+ * @param options.workerCount - Maximum number of concurrent conversion workers
  *
  * @example
  * ```ts
@@ -264,7 +265,7 @@ const groupCandidatesBySource = (candidates, onStatus, onWorkerStart, onWorkerSt
  * ```
  */
 export const convertFontsInDir = async (dirPath, options = {}) => {
-    const { outputDir, formats = ['woff', 'woff2'], sourceFontFiles, onStatus, onWorkerStart, onWorkerStatus, onWorkerDone, onProgress, onWarn, } = options;
+    const { outputDir, formats = ['woff', 'woff2'], sourceFontFiles, workerCount = os.availableParallelism(), onStatus, onWorkerStart, onWorkerStatus, onWorkerDone, onProgress, onWarn, } = options;
     const fontFiles = sourceFontFiles ?? findSourceFontFiles(dirPath);
     if (fontFiles.length === 0) {
         onWarn?.(`No TTF or OTF files found in ${pc.blue(dirPath)}`);
@@ -287,7 +288,7 @@ export const convertFontsInDir = async (dirPath, options = {}) => {
     });
     const dedupedCandidates = dedupeCandidatesByOutputPath(candidates, onWarn);
     const tasks = groupCandidatesBySource(dedupedCandidates, onStatus, onWorkerStart, onWorkerStatus, onWorkerDone, onProgress, onWarn);
-    const results = await runWithPool(tasks, os.availableParallelism());
+    const results = await runWithPool(tasks, Math.max(1, workerCount));
     const failureCount = results.filter(result => !result.success).length;
     if (results.some(result => result.usedWasmFallback)) {
         onWarn?.('WOFF2 conversion used the slower WASM fallback because the native ttf2woff2 addon could not be loaded.');

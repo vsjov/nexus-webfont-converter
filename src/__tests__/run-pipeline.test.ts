@@ -240,7 +240,7 @@ describe('Expect runPipeline', () => {
         expect.stringContaining('conversion failed'),
       )
       expect(generateFontFaceScss).not.toHaveBeenCalled()
-      expect(createProgress).toHaveBeenCalledWith(7)
+      expect(createProgress).toHaveBeenCalledWith(7, expect.any(Number))
     })
   })
 })

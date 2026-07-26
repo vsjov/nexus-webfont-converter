@@ -1,6 +1,7 @@
 // Imports
 // -----------------------------------------------------------------------------
 // NodeJS
+import os from 'node:os';
 import fs from 'node:fs';
 import path from 'node:path';
 import { join } from 'node:path';
@@ -128,7 +129,8 @@ const runPipeline = (inputDir, outputDir, options = {}) => {
     const formats = options.formats ?? OUTPUT_FORMATS;
     const inputTreeScan = scanInputTree(inputDir);
     const total = computeTotalSteps(inputTreeScan, formats);
-    const progress = createProgress(total);
+    const workerCount = os.availableParallelism();
+    const progress = createProgress(total, workerCount);
     const warnings = [];
     const warn = (msg) => warnings.push(msg);
     const cleanOutput = async () => {
@@ -139,6 +141,7 @@ const runPipeline = (inputDir, outputDir, options = {}) => {
         outputDir,
         formats: [...formats],
         sourceFontFiles: inputTreeScan.fontFiles,
+        workerCount,
         onStatus: label => progress.update(label),
         onWorkerStart: (slot, label) => progress.startWorker(slot, label),
         onWorkerStatus: (slot, label) => progress.updateWorker(slot, label),

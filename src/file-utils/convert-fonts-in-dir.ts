@@ -28,6 +28,7 @@ export type ConvertFontsInDirOptions = ProgressOptions & {
   outputDir?: string
   formats?: OutputFormat[]
   sourceFontFiles?: string[]
+  workerCount?: number
 }
 
 type ConversionTask = {
@@ -401,6 +402,7 @@ const groupCandidatesBySource = (
  * @param options.outputDir - Override destination directory (default: same as source file)
  * @param options.formats - Which formats to produce (default: `['woff', 'woff2']`)
  * @param options.sourceFontFiles - Pre-scanned source font paths relative to `dirPath`
+ * @param options.workerCount - Maximum number of concurrent conversion workers
  *
  * @example
  * ```ts
@@ -415,6 +417,7 @@ export const convertFontsInDir = async (
     outputDir,
     formats = ['woff', 'woff2'],
     sourceFontFiles,
+    workerCount = os.availableParallelism(),
     onStatus,
     onWorkerStart,
     onWorkerStatus,
@@ -462,7 +465,7 @@ export const convertFontsInDir = async (
     onProgress,
     onWarn,
   )
-  const results = await runWithPool(tasks, os.availableParallelism())
+  const results = await runWithPool(tasks, Math.max(1, workerCount))
   const failureCount = results.filter(result => !result.success).length
 
   if (results.some(result => result.usedWasmFallback)) {
