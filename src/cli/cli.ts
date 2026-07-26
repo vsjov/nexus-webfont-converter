@@ -49,6 +49,9 @@ ${pc.bold('Maintenance flags')} ${pc.dim('(only --out required, no --in needed)'
   --remove-unused  ${pc.dim('Delete .woff/.woff2 files not referenced in the SCSS')}
   --sync           ${pc.dim('Run --compile-css, --recompile-html and --remove-unused in sequence')}
 
+${pc.bold('Engine:')}
+  --native  ${pc.dim('Run the transitional Rust implementation through the wfc wrapper')}
+
 ${pc.bold('Other:')}
   --version  ${pc.dim('Show version number')}
   --help     ${pc.dim('Show this help message')}
@@ -120,11 +123,18 @@ export const main = async () => {
       'recompile-html': { type: 'boolean', default: false },
       'remove-unused': { type: 'boolean', default: false },
       sync: { type: 'boolean', default: false },
+      native: { type: 'boolean', default: false },
       version: { type: 'boolean', default: false },
       help: { type: 'boolean', default: false },
     },
     strict: true,
   })
+
+  if (values.native) {
+    exitWithError(
+      '--native is handled by the wfc wrapper. Invoke wfc rather than dist/cli/cli.js directly.',
+    )
+  }
 
   if (values.version) {
     console.log(version)

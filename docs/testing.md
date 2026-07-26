@@ -74,16 +74,24 @@ directly.
 
 ## npm Wrapper Test
 
-Until platform-native npm packages are published, the npm wrapper falls back to
-the existing compiled Node.js CLI:
+The npm wrapper runs the existing compiled Node.js CLI by default. Build the
+native source-checkout binary, then request it explicitly with `--native`:
 
 ```bash
 npm run build
-node ./bin/wfc.cjs --in ./fonts-sample/input --out /tmp/wfc-node-output
+npm link
+npm run build:native
+wfc --in ./fonts-sample/input --out /tmp/wfc-node-output
+wfc --native --in ./fonts-sample/input --out /tmp/wfc-rust-output
 ```
 
-When a matching optional native package is installed, `bin/wfc.cjs` delegates
-to its `wfc` executable instead. Run the wrapper unit test with:
+The native build command uses Cargo's release profile, which is required for a
+meaningful performance comparison.
+
+Use separate output directories for comparisons. When a matching optional
+native package is installed, `bin/wfc.cjs --native` delegates to its `wfc`
+executable. If native mode cannot find an executable, it fails instead of
+falling back to Node.js. Run the wrapper unit test with:
 
 ```bash
 npm run test:wrapper

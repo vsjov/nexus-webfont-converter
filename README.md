@@ -25,8 +25,22 @@ After that, the `wfc` command will be available in your terminal. Run `wfc
 ### Rust migration commands
 
 The Rust reimplementation is developed alongside the Node.js implementation.
-When a platform-specific native package is available, the npm `wfc` wrapper
-uses it automatically; otherwise it runs the existing Node.js CLI. See the
+The npm `wfc` wrapper always runs the Node.js implementation by default. Build
+the Rust CLI and add `--native` to select it explicitly:
+
+```bash
+npm link
+npm run build:native
+wfc --native --in ./fonts/source --out /tmp/fonts-rust
+wfc --in ./fonts/source --out /tmp/fonts-node
+```
+
+`build:native` creates an optimized `target/release/wfc` executable suitable
+for performance comparisons.
+
+Use separate output directories when comparing engines. If `--native` is
+requested but no local or platform-native executable is available, `wfc` exits
+with a build or installation hint and never falls back to Node.js. See the
 [Rust CLI migration guide](./docs/rust-migration.md) for the current support
 matrix, release process, and publication prerequisites. To verify the Rust
 workspace, install the pinned toolchain from `rust-toolchain.toml` and run:

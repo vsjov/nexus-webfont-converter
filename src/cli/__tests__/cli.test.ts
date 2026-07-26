@@ -129,6 +129,18 @@ describe('Expect CLI', () => {
     })
   })
 
+  describe('to reject wrapper-only flags', () => {
+    it('when --native bypasses the wfc wrapper', async () => {
+      await expect(runCli(['--native', '--help'])).rejects.toThrow(
+        'process.exit:1',
+      )
+
+      expect(console.error).toHaveBeenCalledWith(
+        expect.stringContaining('--native is handled by the wfc wrapper'),
+      )
+    })
+  })
+
   describe('to run conversion mode', () => {
     it('when input and output arguments are valid', async () => {
       const { default: runPipeline } = await import('../../run-pipeline.js')

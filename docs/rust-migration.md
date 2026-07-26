@@ -6,8 +6,9 @@ implementation is validated and distributed.
 
 ## Current behavior
 
-The npm `wfc` entrypoint first looks for the installed target package matching
-the current Node.js platform and CPU architecture:
+The npm `wfc` entrypoint runs the Node.js implementation by default. Add
+`--native` to select a Rust executable. It first looks for an installed target
+package matching the current Node.js platform and CPU architecture:
 
 | Platform | Architecture | Optional package |
 |----------|--------------|------------------|
@@ -17,10 +18,26 @@ the current Node.js platform and CPU architecture:
 | Windows | x64 | `nexus-webfont-converter-win32-x64` |
 
 When an installed target package contains `bin/wfc` (or `bin/wfc.exe` on
-Windows), the wrapper runs that executable with the original arguments. If it
-is absent, including on an unsupported target, the wrapper runs the compiled
-Node.js CLI. This fallback preserves the published npm command while native
-distribution is phased in.
+Windows), `wfc --native` runs that executable with every non-wrapper argument
+unchanged. In a source checkout, it also discovers a locally built
+`target/release/wfc` or `target/debug/wfc` executable. If native mode is
+requested but no executable is available, the wrapper exits non-zero with an
+actionable error and does not fall back to Node.js. This keeps benchmark and
+output comparisons trustworthy.
+
+Build the source-checkout executable with:
+
+```bash
+npm link
+npm run build:native
+wfc --native --in ./fonts/source --out /tmp/fonts-rust
+wfc --in ./fonts/source --out /tmp/fonts-node
+```
+
+`npm run build:native` builds the optimized release binary. The wrapper prefers
+that binary over a debug build so benchmark results reflect production code.
+
+Use distinct output directories. A conversion run cleans its output root.
 
 The Rust CLI supports the existing conversion and maintenance flags:
 
@@ -31,6 +48,9 @@ wfc --out <output-dir> --recompile-html
 wfc --out <output-dir> --remove-unused
 wfc --out <output-dir> --sync
 ```
+
+The wrapper-only `--native` flag may be combined with every command above and
+is removed before the Rust CLI receives the remaining flags.
 
 ## Development checks
 
@@ -74,5 +94,5 @@ cross-platform prebuilts requires all of the following:
 5. A support policy for additional targets such as Linux arm64 and musl, and
    verification that all Rust dependencies build for each selected target.
 
-Until those preconditions are met, the Node.js fallback remains the supported
-npm execution path. Do not remove it or make native target packages mandatory.
+Until those preconditions are met, Node.js remains the default npm execution
+path. Do not remove it or make native target packages mandatory.
