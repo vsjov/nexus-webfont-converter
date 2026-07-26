@@ -10,7 +10,7 @@ use std::fmt;
 use std::io::IsTerminal;
 use std::path::{Path, PathBuf};
 
-use clap::{CommandFactory, Parser};
+use clap::Parser;
 use nexus_webfont_core::discovery::scan_input_tree;
 use nexus_webfont_core::filesystem::validate_output_root;
 use nexus_webfont_core::generation::{compile_css_files, regenerate_font_preview_html};
@@ -91,8 +91,7 @@ fn run_cli(cli: Cli) -> Result<(), Box<dyn Error>> {
         return Ok(());
     }
     if cli.help || (cli.input.is_none() && cli.output.is_none()) {
-        Cli::command().print_help()?;
-        println!();
+        print!("{}", help_text(std::io::stdout().is_terminal()));
         return Ok(());
     }
 
@@ -171,6 +170,35 @@ fn color(code: &str, value: &str, enabled: bool) -> String {
     }
 }
 
+/// Formats the Node-compatible CLI help document for terminal or piped output.
+fn help_text(color_enabled: bool) -> String {
+    let bold = |value: &str| color("1", value, color_enabled);
+    let dim = |value: &str| color("2", value, color_enabled);
+
+    format!(
+        "\n{} - Nexus Webfont Converter {}\n\n{}\n  wfc --in <input-dir> --out <output-dir>\n  wfc --out <output-dir> <maintenance-flag>\n\n{}\n  --in   {}\n  --out  {}\n         {}\n\n{} {}\n  --compile-css    {}\n  --recompile-html {}\n  --remove-unused  {}\n  --sync           {}\n\n{}\n  --native  {}\n\n{}\n  --version  {}\n  --help     {}\n\n{}\n  wfc --in ./fonts/source --out ./fonts/web\n  wfc --out ./fonts/web --compile-css\n  wfc --out ./fonts/web --sync\n\n",
+        bold("wfc"),
+        dim(&format!("v{}", env!("CARGO_PKG_VERSION"))),
+        bold("Usage:"),
+        bold("Options:"),
+        dim("Path to the directory containing TTF/OTF font files (required for conversion)"),
+        dim("Path to the output directory (required)"),
+        dim("Cannot be empty, the same as --in, or a subfolder of --in."),
+        bold("Maintenance flags"),
+        dim("(only --out required, no --in needed):"),
+        dim("Compile SCSS to minified CSS in the output directory"),
+        dim("Re-generate HTML preview pages from existing SCSS entries"),
+        dim("Delete .woff/.woff2 files not referenced in the SCSS"),
+        dim("Run --compile-css, --recompile-html and --remove-unused in sequence"),
+        bold("Engine:"),
+        dim("Run the transitional Rust implementation through the wfc wrapper"),
+        bold("Other:"),
+        dim("Show version number"),
+        dim("Show this help message"),
+        bold("Examples:"),
+    )
+}
+
 fn pipeline_total(
     scan: &nexus_webfont_core::discovery::InputTreeScan,
     format_count: usize,
@@ -238,7 +266,7 @@ mod tests {
     use clap::Parser;
     use clap::error::ErrorKind;
 
-    use super::{Cli, is_maintenance_mode};
+    use super::{Cli, help_text, is_maintenance_mode};
 
     #[test]
     fn parses_node_compatible_conversion_flags() {
@@ -286,5 +314,22 @@ mod tests {
 
         assert!(help.help);
         assert!(version.version);
+    }
+
+    #[test]
+    fn formats_node_compatible_help_without_terminal_colors() {
+        assert_eq!(
+            help_text(false),
+            "\nwfc - Nexus Webfont Converter v1.2.0\n\nUsage:\n  wfc --in <input-dir> --out <output-dir>\n  wfc --out <output-dir> <maintenance-flag>\n\nOptions:\n  --in   Path to the directory containing TTF/OTF font files (required for conversion)\n  --out  Path to the output directory (required)\n         Cannot be empty, the same as --in, or a subfolder of --in.\n\nMaintenance flags (only --out required, no --in needed):\n  --compile-css    Compile SCSS to minified CSS in the output directory\n  --recompile-html Re-generate HTML preview pages from existing SCSS entries\n  --remove-unused  Delete .woff/.woff2 files not referenced in the SCSS\n  --sync           Run --compile-css, --recompile-html and --remove-unused in sequence\n\nEngine:\n  --native  Run the transitional Rust implementation through the wfc wrapper\n\nOther:\n  --version  Show version number\n  --help     Show this help message\n\nExamples:\n  wfc --in ./fonts/source --out ./fonts/web\n  wfc --out ./fonts/web --compile-css\n  wfc --out ./fonts/web --sync\n\n"
+        );
+    }
+
+    #[test]
+    fn formats_help_with_terminal_heading_and_description_colors() {
+        let help = help_text(true);
+
+        assert!(help.contains("\x1b[1mwfc\x1b[0m"));
+        assert!(help.contains("\x1b[2mv1.2.0\x1b[0m"));
+        assert!(help.contains("\x1b[2mShow this help message\x1b[0m"));
     }
 }
