@@ -1,3 +1,27 @@
+# Deprecated
+
+> [!WARNING]
+> This repository and the `nexus-webfont-converter` npm package are deprecated.
+> They will not receive further updates. Use
+> [`@vx.rs/webfont-converter`](https://www.npmjs.com/package/@vx.rs/webfont-converter)
+> instead. Its Rust implementation is approximately 10 times faster based on
+> project benchmarks.
+
+Migrate the global CLI installation with:
+
+```sh
+npm uninstall --global nexus-webfont-converter
+npm install --global @vx.rs/webfont-converter
+```
+
+The replacement package, documentation, and issue tracker are maintained in
+[`vx-rs/webfont-converter-node`](https://github.com/vx-rs/webfont-converter-node).
+
+The documentation below is retained only for existing users of the deprecated
+package.
+
+---
+
 [![CI](https://github.com/vsjov/nexus-webfont-converter/actions/workflows/main.yml/badge.svg)](https://github.com/vsjov/nexus-webfont-converter/actions/workflows/main.yml)
 ![Node.js](https://img.shields.io/node/v/nexus-webfont-converter)
 
